@@ -16,8 +16,11 @@ interface KeyValueDisplayProps {
 export const KeyValueDisplay = ({ keyLabel, value, valueRender }: KeyValueDisplayProps) => {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-accent-foreground font-semibold">{keyLabel}</span>
-      {valueRender ? valueRender(value) : <span>{value ?? NOT_APPLICABLE}</span>}
+      {/* Voltu field label: small mono uppercase caption above the value (marketing-site detail voice). */}
+      <span className="font-mono text-xs font-medium uppercase tracking-wider text-muted-foreground">
+        {keyLabel}
+      </span>
+      {valueRender ? valueRender(value) : <span className="text-sm">{value ?? NOT_APPLICABLE}</span>}
     </div>
   );
 };

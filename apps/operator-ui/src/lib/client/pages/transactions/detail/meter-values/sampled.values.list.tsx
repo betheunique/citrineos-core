@@ -24,7 +24,7 @@ export const SampledValueView: React.FC<SampledValueProps> = ({ sampledValue }) 
   );
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border rounded-sm overflow-hidden">
       <DescriptionRow label={translate('Transactions.meterValues.value')}>
         {sampledValue.value !== null && sampledValue.value !== undefined ? (
           sampledValue.value

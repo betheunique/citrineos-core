@@ -43,10 +43,10 @@ const KeycloakLoginPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+    <div className="voltu-ruled flex min-h-screen items-center justify-center bg-background">
       <div className="text-center">
         <h2 className="text-xl font-semibold mb-2">{translate('pages.redirectingToKeycloak')}</h2>
-        <p className="text-gray-600">{translate('pages.redirectingToKeycloakLogin')}</p>
+        <p className="text-muted-foreground">{translate('pages.redirectingToKeycloakLogin')}</p>
       </div>
     </div>
   );

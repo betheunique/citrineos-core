@@ -19,38 +19,24 @@ export const Logo: React.FC<LogoProps> = (props: LogoProps) => {
   const { theme } = useTheme();
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      <motion.img
-        src={LOGO_URL}
-        alt="Collapsed Logo"
-        initial={{ scale: 0.2, opacity: 0, x: -10, left: 0 }}
-        animate={{
-          scale: collapsed ? 0.5 : 0.2,
-          opacity: collapsed ? 1 : 0,
-          x: collapsed ? '-50%' : -10,
-          left: collapsed ? '50%' : 0,
-        }}
-        style={{
-          position: 'absolute',
-          height: '100%',
-        }}
-      />
-      {!collapsed && (
-        <div
-          style={{
-            position: 'relative',
-            width: '80%',
-            height: '60%',
-            margin: '0 auto',
-          }}
-        >
+    <div className="flex h-full w-full items-center justify-center">
+      {collapsed ? (
+        <motion.img
+          key="mark"
+          src={LOGO_URL}
+          alt={`${config.appName} logo`}
+          className="h-12 w-auto"
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ duration: 0.2 }}
+        />
+      ) : (
+        <div className="relative h-16 w-4/5">
           <Image
             src={theme === 'light' ? '/logo-black.svg' : '/logo-white.svg'}
-            alt={`${config.appName} Logo`}
+            alt={`${config.appName} logo`}
             fill
-            style={{
-              objectFit: 'contain',
-            }}
+            style={{ objectFit: 'contain' }}
           />
         </div>
       )}

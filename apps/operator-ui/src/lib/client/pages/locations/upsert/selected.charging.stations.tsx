@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 'use client';
 
+import { StatusBadge } from '@lib/client/components/ui/status-badge';
+
 import { LocationProps } from '@citrineos/types';
 import { Combobox } from '@lib/client/components/combobox';
 import { MenuSection } from '@lib/client/components/main-menu/main.menu';
@@ -114,7 +116,7 @@ export const SelectedChargingStations = ({ form, params }: SelectedChargingStati
                 {translate('Locations.stations.noChargingStationsSelected')}
               </div>
             ) : (
-              <div className="border rounded-md flex flex-col gap-4">
+              <div className="border rounded-sm flex flex-col gap-4">
                 {chargingStations.map((station: any, index: number) => (
                   <div
                     key={station.fieldArrayId}
@@ -128,9 +130,10 @@ export const SelectedChargingStations = ({ form, params }: SelectedChargingStati
                       keyLabel={translate('Common.status')}
                       value={station.isOnline}
                       valueRender={(isOnline: any) => (
-                        <span className={isOnline ? 'text-success' : 'text-destructive'}>
-                          {isOnline ? translate('Common.online') : translate('Common.offline')}
-                        </span>
+                        <StatusBadge
+                          status={isOnline ? 'live' : 'offline'}
+                          label={isOnline ? translate('Common.online') : translate('Common.offline')}
+                        />
                       )}
                     />
                     <KeyValueDisplay

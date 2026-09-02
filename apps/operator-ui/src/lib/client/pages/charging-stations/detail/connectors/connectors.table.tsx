@@ -22,7 +22,7 @@ export const ConnectorsTable: React.FC<ConnectorsTableProps> = ({ connectors, on
   const translate = useTranslate();
 
   return (
-    <div className="border rounded-lg overflow-hidden">
+    <div className="border rounded-sm overflow-hidden">
       <table className="w-full border-collapse text-sm">
         <thead className="bg-muted">
           <tr>

@@ -38,7 +38,7 @@ export function UndoableNotification({
       className={cn(
         'bg-card',
         'text-card-foreground',
-        'rounded-lg',
+        'rounded-sm',
         'p-4',
         'shadow-xl',
         'border',
@@ -67,7 +67,7 @@ export function UndoableNotification({
             'py-2',
             'text-sm',
             'font-medium',
-            'rounded-md',
+            'rounded-sm',
           )}
         >
           {t('buttons.undo', 'Undo')}

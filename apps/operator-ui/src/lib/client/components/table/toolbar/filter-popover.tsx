@@ -184,7 +184,7 @@ function ValueInput({
         {(cfg.enumOptions ?? []).map((opt: any) => (
           <label
             key={opt.value}
-            className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 text-sm hover:bg-muted"
+            className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-muted"
           >
             <input
               type="checkbox"
@@ -205,7 +205,7 @@ function ValueInput({
         <button
           onClick={() => onYesNoChange('true')}
           className={cn(
-            'flex-1 rounded-md border py-2 text-sm font-medium transition-colors',
+            'flex-1 rounded-sm border py-2 text-sm font-medium transition-colors',
             yesNoValue === 'true'
               ? 'border-success bg-success/10 text-success'
               : 'border-border text-muted-foreground hover:bg-muted',
@@ -216,7 +216,7 @@ function ValueInput({
         <button
           onClick={() => onYesNoChange('false')}
           className={cn(
-            'flex-1 rounded-md border py-2 text-sm font-medium transition-colors',
+            'flex-1 rounded-sm border py-2 text-sm font-medium transition-colors',
             yesNoValue === 'false'
               ? 'border-destructive bg-destructive/10 text-destructive'
               : 'border-border text-muted-foreground hover:bg-muted',
@@ -360,7 +360,7 @@ export function FilterPopover({
                 return (
                   <div
                     key={i}
-                    className="flex items-center gap-2 rounded-md border px-2 py-1 text-sm"
+                    className="flex items-center gap-2 rounded-sm border px-2 py-1 text-sm"
                   >
                     <span className="font-medium">{fl}</span>
                     <span className="rounded bg-muted px-1.5 py-0.5 text-xs text-muted-foreground">

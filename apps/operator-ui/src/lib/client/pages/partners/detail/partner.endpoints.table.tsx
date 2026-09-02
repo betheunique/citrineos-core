@@ -162,7 +162,7 @@ export const PartnerEndpointsTable: React.FC<PartnerEndpointsTableProps> = ({
         </Button>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-sm border">
         <table className="w-full">
           <thead>
             <tr className="border-b bg-muted/50">

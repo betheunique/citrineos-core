@@ -1,0 +1,37 @@
+{
+  "name": "@voltu/ocpp-proxy",
+  "version": "0.0.0",
+  "description": "Passive OCPP-J proxy: a charger points here, the proxy transparently relays to its incumbent CSMS (Statiq/Tata keep control) and forks a read-only copy of the telemetry to the Voltu citrine-bridge. Mode B, 'run in parallel'.",
+  "type": "module",
+  "private": true,
+  "main": "dist/index.js",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -b tsconfig.json",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "typecheck": "tsc -b tsconfig.json --pretty",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@eslint/js": "catalog:",
+    "@types/node": "^25.3.3",
+    "@types/ws": "^8.5.13",
+    "eslint": "catalog:",
+    "eslint-config-prettier": "catalog:",
+    "eslint-plugin-prettier": "catalog:",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.0",
+    "typescript-eslint": "catalog:"
+  },
+  "engines": {
+    "node": ">=24.16.0"
+  }
+}

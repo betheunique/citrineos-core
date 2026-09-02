@@ -1,0 +1,59 @@
+# SPDX-FileCopyrightText: 2025 Voltu
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# PR gate: build the three Voltu images (branded operator UI + the two telemetry sidecars) WITHOUT pushing or
+# deploying, so a broken Dockerfile / build is caught before merge. The real publish + deploy is deploy.yml on
+# main. Same build steps as deploy.yml's build job, but push: false and no registry login.
+
+name: Build images (PR check)
+
+on:
+  pull_request:
+    paths:
+      - 'apps/operator-ui/**'
+      - 'apps/voltu-bridge-emitter/**'
+      - 'apps/voltu-ocpp-proxy/**'
+      - 'packages/**'
+      - 'pnpm-lock.yaml'
+      - 'pnpm-workspace.yaml'
+      - 'docker-compose.voltu.yml'
+      - '.github/workflows/build-images.yml'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: build-images-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build (no push)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        image:
+          - name: voltu-operator-ui
+            dockerfile: ./apps/operator-ui/Dockerfile
+          - name: voltu-bridge-emitter
+            dockerfile: ./apps/voltu-bridge-emitter/Dockerfile
+          - name: voltu-ocpp-proxy
+            dockerfile: ./apps/voltu-ocpp-proxy/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build ${{ matrix.image.name }} (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.image.dockerfile }}
+          push: false
+          load: false
+          tags: ${{ matrix.image.name }}:pr-${{ github.event.pull_request.number || github.run_id }}
+          cache-from: type=gha,scope=${{ matrix.image.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image.name }}

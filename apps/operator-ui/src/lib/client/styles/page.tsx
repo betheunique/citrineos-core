@@ -4,9 +4,9 @@
 
 export const pageMargin = 'm-6';
 
-export const heading2Style = 'text-2xl font-semibold';
+export const heading2Style = 'font-display text-2xl font-bold tracking-tight';
 
-export const heading3Style = 'text-xl font-semibold';
+export const heading3Style = 'font-display text-xl font-bold tracking-tight';
 
 export const pageFlex = 'flex flex-col gap-4';
 

@@ -536,7 +536,7 @@ export const ChargingStationConfiguration: React.FC<ChargingStationConfiguration
     const colCount = columns.length + 1;
 
     return (
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table
             className={`w-full border-collapse transition-opacity ${

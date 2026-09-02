@@ -114,7 +114,7 @@ export const ActiveTransactionsCard = () => {
         </CardHeader>
         <CardContent>
           {isError ? (
-            <p>{translate('Overview.errorLoadingData')}</p>
+            <p className="text-sm text-muted-foreground">{translate('Overview.errorLoadingData')}</p>
           ) : (
             <div className="flex flex-col gap-4">
               <div className="max-w-md">

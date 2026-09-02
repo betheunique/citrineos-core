@@ -4,6 +4,7 @@
 'use client';
 
 import { Button } from '@lib/client/components/ui/button';
+import { cn } from '@lib/utils/cn';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -51,6 +52,7 @@ export const LocaleSwitcher = ({ expanded }: { expanded: boolean }) => {
                 size={expanded ? 'default' : 'icon'}
                 variant="ghost"
                 aria-label={t('language')}
+                className={cn(expanded && 'w-full justify-start')}
               >
                 <Languages className={sidebarIconSize} />
                 {expanded && <span>{currentLabel}</span>}

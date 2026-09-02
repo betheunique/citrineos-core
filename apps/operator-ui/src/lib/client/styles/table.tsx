@@ -8,7 +8,7 @@ export const tableHeaderTextStyle =
 export const tableHeaderRowStyle = 'bg-secondary';
 
 export const tableWrapperStyle =
-  'p-6 border border-border rounded-md bg-card shadow-sm flex flex-col gap-4';
+  'p-6 border border-border rounded-sm bg-card flex flex-col gap-4';
 
 export const tableHeaderWrapperFlex = 'flex justify-between items-center';
 

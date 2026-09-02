@@ -237,7 +237,7 @@ export const ChargerActivityCard: React.FC = () => {
         </CardHeader>
         <CardContent>
           {error ? (
-            <p>{translate('Overview.errorLoadingData')}</p>
+            <p className="text-sm text-muted-foreground">{translate('Overview.errorLoadingData')}</p>
           ) : (
             <div className="flex gap-2">
               {[

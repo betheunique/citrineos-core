@@ -20,22 +20,32 @@ const hashStringToColorIndex = (str: string) => {
   return Math.abs(hash);
 };
 
-// Map Ant Design colors to Tailwind classes
+// Voltu-leaning, theme-aware chip palette for arbitrary enum values (GenericTag hashes to these). Tinted
+// pills that read on both cream and petrol; loud off-brand hues (purple/cyan/pink/magenta) are pulled toward
+// the Voltu family (verdigris/teal, saffron/amber, gold, olive/lime, ghost/rose, petrol/indigo).
 const colorClassMap: Record<string, string> = {
-  cyan: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-  purple: 'bg-purple-100 text-purple-800 border-purple-200',
-  blue: 'bg-blue-100 text-blue-800 border-blue-200',
-  green: 'bg-green-100 text-green-800 border-green-200',
-  red: 'bg-red-100 text-red-800 border-red-200',
-  orange: 'bg-orange-100 text-orange-800 border-orange-200',
-  yellow: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-  pink: 'bg-pink-100 text-pink-800 border-pink-200',
-  magenta: 'bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200',
-  volcano: 'bg-orange-100 text-orange-800 border-orange-200',
-  gold: 'bg-amber-100 text-amber-800 border-amber-200',
-  lime: 'bg-lime-100 text-lime-800 border-lime-200',
-  geekblue: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-  default: 'bg-gray-100 text-gray-800 border-gray-200',
+  cyan: 'bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-500/15 dark:text-teal-300 dark:border-teal-500/30',
+  purple:
+    'bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30',
+  blue: 'bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/30',
+  green:
+    'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-500/15 dark:text-emerald-300 dark:border-emerald-500/30',
+  red: 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30',
+  orange:
+    'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/30',
+  yellow:
+    'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-500/15 dark:text-amber-300 dark:border-amber-500/30',
+  pink: 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30',
+  magenta:
+    'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-500/15 dark:text-rose-300 dark:border-rose-500/30',
+  volcano:
+    'bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-500/15 dark:text-orange-300 dark:border-orange-500/30',
+  gold: 'bg-amber-100 text-amber-900 border-amber-200 dark:bg-amber-500/15 dark:text-amber-200 dark:border-amber-500/30',
+  lime: 'bg-lime-100 text-lime-800 border-lime-200 dark:bg-lime-500/15 dark:text-lime-300 dark:border-lime-500/30',
+  geekblue:
+    'bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30',
+  default:
+    'bg-muted text-muted-foreground border-border',
 };
 
 interface GenericTagProps<T extends Record<string, string | number>> {

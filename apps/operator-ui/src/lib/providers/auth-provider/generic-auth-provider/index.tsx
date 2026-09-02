@@ -67,7 +67,9 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
+    <div className="voltu-ruled flex min-h-screen flex-col items-center justify-center gap-8 bg-background px-4 py-12 sm:px-6 lg:px-8">
+      <img src="/logo-black.svg" alt="Voltu" className="h-9 w-auto dark:hidden" />
+      <img src="/logo-white.svg" alt="Voltu" className="hidden h-9 w-auto dark:block" />
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">

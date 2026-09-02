@@ -41,6 +41,7 @@ import { badgeListStyle, clickableLinkStyle, heading2Style } from '@lib/client/s
 import { buttonIconSize } from '@lib/client/styles/icon';
 import { KeyValueDisplay } from '@lib/client/components/key-value-display';
 import { Badge } from '@lib/client/components/ui/badge';
+import { StatusBadge } from '@lib/client/components/ui/status-badge';
 import Image from 'next/image';
 import { isGcp } from '@lib/server/clients/file/isGcp';
 import { StartTransactionButton } from '@lib/client/pages/charging-stations/start.transaction.button';
@@ -202,9 +203,10 @@ export const ChargingStationDetailCard = ({
             className="cursor-pointer"
           />
           <h2 className={heading2Style}>{station.ocppConnectionName}</h2>
-          <span className={station.isOnline ? 'text-success' : 'text-destructive'}>
-            {station.isOnline ? translate('Common.online') : translate('Common.offline')}
-          </span>
+          <StatusBadge
+            status={station.isOnline ? 'live' : 'offline'}
+            label={station.isOnline ? translate('Common.online') : translate('Common.offline')}
+          />
           <CanAccess
             resource={ResourceType.CHARGING_STATIONS}
             action={ActionType.EDIT}
@@ -445,13 +447,13 @@ export const ChargingStationDetailCard = ({
 
           {/* Right: Image */}
           {imageUrl && (
-            <div className="flex-shrink-0 w-64 md:w-48 sm:w-32 h-64 md:h-48 sm:h-32 flex items-center justify-center bg-gray-100 rounded-md relative">
+            <div className="flex-shrink-0 w-64 md:w-48 sm:w-32 h-64 md:h-48 sm:h-32 flex items-center justify-center bg-muted rounded-sm relative">
               <Image
                 src={imageUrl}
                 unoptimized={isGcp}
                 fill={isGcp}
                 alt={`${station.ocppConnectionName} image`}
-                className="w-full h-full object-contain rounded-md bg-gray-100"
+                className="w-full h-full object-contain rounded-sm bg-muted"
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).style.display = 'none';
                 }}

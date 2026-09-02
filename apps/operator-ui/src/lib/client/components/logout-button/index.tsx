@@ -6,6 +6,7 @@
 import React from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@lib/client/components/ui/button';
+import { cn } from '@lib/utils/cn';
 import { LogOut } from 'lucide-react';
 import { authProvider } from '@lib/providers/auth-provider';
 import { sidebarIconSize } from '@lib/client/styles/icon';
@@ -23,7 +24,12 @@ export const LogoutButton = ({ expanded }: { expanded: boolean }) => {
     });
   };
   return (
-    <Button size={expanded ? 'default' : 'icon'} variant="ghost" onClick={logout}>
+    <Button
+      size={expanded ? 'default' : 'icon'}
+      variant="ghost"
+      onClick={logout}
+      className={cn(expanded && 'w-full justify-start')}
+    >
       <LogOut className={sidebarIconSize} />
       {expanded && <span>{translate('buttons.logout')}</span>}
     </Button>

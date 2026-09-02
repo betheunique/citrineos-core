@@ -580,7 +580,7 @@ export const LocationsUpsert = ({ params, allowImageUpload = false }: LocationsU
                         {translate('Locations.form.upload')}
                       </Button>
                       {uploadedFileName && (
-                        <span className="text-sm text-gray-700">{uploadedFileName}</span>
+                        <span className="text-sm text-muted-foreground">{uploadedFileName}</span>
                       )}
                     </Field>
                   )}

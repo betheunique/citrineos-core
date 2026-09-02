@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 'use client';
 
+import { StatusBadge } from '@lib/client/components/ui/status-badge';
+
 import React from 'react';
 import { CanAccess, Link, useList, useOne, useTranslate } from '@refinedev/core';
 import { useDispatch } from 'react-redux';
@@ -147,9 +149,10 @@ export const StationPreviewPanel: React.FC<StationPreviewPanelProps> = ({
             <span>{ocppConnectionName}</span>
           )}
           {station && (
-            <span className={station.isOnline ? 'text-success' : 'text-destructive'}>
-              {station.isOnline ? translate('Common.online') : translate('Common.offline')}
-            </span>
+            <StatusBadge
+              status={station.isOnline ? 'live' : 'offline'}
+              label={station.isOnline ? translate('Common.online') : translate('Common.offline')}
+            />
           )}
         </div>
         <Button variant="ghost" size="icon" onClick={onClose} title={translate('Common.close')}>
@@ -245,14 +248,14 @@ export const StationPreviewPanel: React.FC<StationPreviewPanelProps> = ({
                   <span className="text-sm text-muted-foreground">{NOT_APPLICABLE}</span>
                 ) : (
                   station.evses!.map((evse) => (
-                    <div key={evse.id} className="rounded-md border p-2 text-sm">
+                    <div key={evse.id} className="rounded-sm border p-2 text-sm">
                       <div className="font-medium">#{evse.evseId}</div>
                       {isEmpty(evse.connectors) ? (
                         <div className="mt-1 text-muted-foreground">
                           {translate('ChargingStations.connectors.noConnectors')}
                         </div>
                       ) : (
-                        <div className="mt-2 overflow-x-auto rounded-md border">
+                        <div className="mt-2 overflow-x-auto rounded-sm border">
                           <table className="w-full border-collapse text-xs">
                             <thead className="bg-muted">
                               <tr>

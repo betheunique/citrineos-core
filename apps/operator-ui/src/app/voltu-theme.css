@@ -1,0 +1,103 @@
+/* Voltu web theme: the CANONICAL source of truth for the Voltu brand on the web (palette, fonts, radius,
+   and a few self-contained brand primitives). Framework-agnostic plain CSS.
+
+   Consumers:
+   - the marketing site (apps/web) imports this and expresses its own tokens (--pa/--ink/--vd/...) in terms
+     of these --voltu-* variables.
+   - the operator UI (separate CitrineOS fork) VENDORS a copy of this file and maps its shadcn tokens
+     (--background/--primary/...) to these --voltu-* variables.
+
+   The palette is FLAT (both the light "paper" family and the dark "petrol" family are defined here as
+   distinct variables). Each app decides which family to use under its own dark trigger (the marketing site
+   uses the `.surf` class, the operator UI uses `[data-theme=dark]`), so this file never switches themes
+   itself. Change the brand HERE first, then re-sync the operator UI's vendored copy. */
+
+:root {
+  /* Paper family (light surfaces) */
+  --voltu-paper: #efeee7;
+  --voltu-paper-2: #e5e4db;
+  --voltu-paper-3: #d9d8cd;
+  /* Petrol family (dark surfaces) */
+  --voltu-petrol: #121a19;
+  --voltu-petrol-2: #1b2523;
+  --voltu-petrol-3: #233029;
+  /* Ink family (text on light) */
+  --voltu-ink: #16211f;
+  --voltu-ink-2: #57635f;
+  --voltu-ink-3: #8c9894;
+  /* Bone family (text on dark) */
+  --voltu-bone: #e9e8e1;
+  --voltu-bone-2: #9aa6a2;
+  --voltu-bone-3: #6b7672;
+  /* Verdigris (the accent), light + brightened-for-dark */
+  --voltu-verdigris: #0e7c68;
+  --voltu-verdigris-bright: #2baa8e;
+  /* Saffron */
+  --voltu-saffron: #e9861a;
+  --voltu-saffron-bright: #f2a03c;
+  /* Gold */
+  --voltu-gold: #b7791a;
+  --voltu-gold-bright: #d9a340;
+  /* Olive (a secondary positive) */
+  --voltu-olive: #6e8a2a;
+  /* Ghost red, and a softer variant for dark */
+  --voltu-ghost: #a81f2b;
+  --voltu-ghost-soft: #e4606b;
+  /* Verified green */
+  --voltu-verified: #12b886;
+  /* Hairlines: on light and on dark */
+  --voltu-hair: rgba(22, 33, 31, 0.16);
+  --voltu-hair-strong: rgba(22, 33, 31, 0.34);
+  --voltu-hair-on-dark: rgba(233, 232, 225, 0.14);
+  --voltu-hair-on-dark-strong: rgba(233, 232, 225, 0.3);
+
+  /* Fonts (fallback stacks; apps that self-host via next/font may point these at their font variables) */
+  --voltu-font-display: 'Bricolage Grotesque', Georgia, serif;
+  --voltu-font-body: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+  --voltu-font-mono: 'Martian Mono', ui-monospace, 'Courier New', monospace;
+
+  /* Radius: Voltu is crisp / editorial */
+  --voltu-radius: 2px;
+}
+
+/* Brand primitives, self-contained so either app can drop them in as classes. */
+
+/* The signature ruled-paper texture. Uses currentColor, so it reads on any surface: put it on an element
+   whose text colour is the ink (light) or bone (dark) and it draws faint horizontal rules every 34px. */
+.voltu-ruled {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0 33px,
+    color-mix(in srgb, currentColor 4%, transparent) 33px 34px
+  );
+}
+
+/* The rotated verdigris mono badge. */
+.voltu-stamp {
+  display: inline-block;
+  border: 1.5px solid var(--voltu-verdigris);
+  color: var(--voltu-verdigris);
+  font-family: var(--voltu-font-mono);
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 3px 7px 2px;
+  transform: rotate(-4deg);
+}
+
+/* The uppercase counted-label vocabulary. */
+.voltu-mono {
+  font-family: var(--voltu-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--voltu-ink-3);
+}
+
+/* A hairline rule. */
+.voltu-hairline {
+  height: 1px;
+  background: var(--voltu-hair);
+  border: 0;
+}

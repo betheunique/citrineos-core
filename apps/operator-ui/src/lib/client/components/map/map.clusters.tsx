@@ -3,6 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 'use client';
 
+import { StatusBadge } from '@lib/client/components/ui/status-badge';
+
 import type { LocationDto } from '@citrineos/types';
 import { InfoWindow, useMap } from '@vis.gl/react-google-maps';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
@@ -77,7 +79,7 @@ export const ClusteredLocationMarkers = ({ locations }: { locations: LocationDto
         <InfoWindow
           headerContent={
             <span
-              className={`cursor-pointer font-semibold underline text-black hover:text-gray-500 text-lg`}
+              className={`cursor-pointer font-semibold underline text-foreground hover:text-primary text-lg`}
               onClick={() =>
                 window.open(`/${MenuSection.LOCATIONS}/${selectedLocationId}`, '_blank')
               }
@@ -95,18 +97,17 @@ export const ClusteredLocationMarkers = ({ locations }: { locations: LocationDto
                 <div key={charger.id} className="border rounded-sm p-2 flex flex-col gap-2">
                   <div className="flex items-center gap-2">
                     <span
-                      className={`cursor-pointer font-semibold underline text-base text-black hover:text-gray-500`}
+                      className={`cursor-pointer font-semibold underline text-base text-foreground hover:text-primary`}
                       onClick={() =>
                         window.open(`/${MenuSection.CHARGING_STATIONS}/${charger.id}`, '_blank')
                       }
                     >
                       {charger.ocppConnectionName}
                     </span>
-                    <span
-                      className={`${charger.isOnline ? 'text-success' : 'text-destructive'} text-xs`}
-                    >
-                      {charger.isOnline ? translate('Common.online') : translate('Common.offline')}
-                    </span>
+                    <StatusBadge
+                      status={charger.isOnline ? 'live' : 'offline'}
+                      label={charger.isOnline ? translate('Common.online') : translate('Common.offline')}
+                    />
                   </div>
                   {charger.evses && charger.evses.length > 0 && (
                     <ChargingStationStatusTag station={charger} />
@@ -114,7 +115,7 @@ export const ClusteredLocationMarkers = ({ locations }: { locations: LocationDto
                 </div>
               ))
             ) : (
-              <div className="text-black">{translate('Locations.map.noChargers')}</div>
+              <div className="text-muted-foreground">{translate('Locations.map.noChargers')}</div>
             )}
           </div>
         </InfoWindow>

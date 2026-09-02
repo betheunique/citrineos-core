@@ -1,0 +1,142 @@
+# SPDX-FileCopyrightText: 2025 Voltu
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Deploy the Voltu CSMS stack to the target host (Oracle to begin with, but nothing here is
+# Oracle-specific: it is "build images -> registry -> ssh + docker compose", so re-targeting to any
+# VPS/cloud is only a change of secrets).
+#
+# Builds three images from this fork (the Voltu-branded operator UI + the two telemetry sidecars),
+# pushes them to GHCR, then SSHes to the host and rolls the compose stack.
+#
+# Required repo secrets (Settings -> Secrets and variables -> Actions):
+#   DEPLOY_HOST        host/IP of the box
+#   DEPLOY_USER        ssh user
+#   DEPLOY_SSH_KEY     private key for that user (PEM)
+#   DEPLOY_PORT        ssh port (optional, default 22)
+#   DEPLOY_DIR         absolute path of the cloned repo on the box (optional, default ~/citrineos-core)
+# Required repo variable (optional):
+#   REGISTRY           image registry+owner, default ghcr.io/<repo owner>. Lets you adopt another registry.
+#
+# No PAT is needed: the built-in GITHUB_TOKEN both pushes (build job) and — because the box pulls DURING this
+# run, not out of band — logs in and pulls on the host (deploy job has packages: read). It is short-lived, so
+# nothing long-lived sits in secrets. (Only if you want the box to re-pull GHCR images on its own, outside a
+# workflow run, would you add a read:packages PAT or make the packages public.)
+#
+# The host must already have: docker + compose v2, the repo cloned at DEPLOY_DIR, and a `.env` file next to
+# the compose files (from .env.deploy.example). See infra/citrineos README section 10.
+
+name: Deploy — Voltu CSMS
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "Git ref to deploy (defaults to the triggering commit)"
+        required: false
+  push:
+    branches: [main]
+    paths:
+      - 'apps/operator-ui/**'
+      - 'apps/voltu-bridge-emitter/**'
+      - 'apps/voltu-ocpp-proxy/**'
+      - 'packages/**'
+      - 'docker-compose.yml'
+      - 'docker-compose.voltu.yml'
+      - '.github/workflows/deploy.yml'
+
+# Never roll two deploys at once.
+concurrency:
+  group: voltu-deploy
+  cancel-in-progress: false
+
+env:
+  REGISTRY: ${{ vars.REGISTRY || format('ghcr.io/{0}', github.repository_owner) }}
+
+jobs:
+  build:
+    name: Build & push images
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    strategy:
+      matrix:
+        image:
+          - name: voltu-operator-ui
+            dockerfile: ./apps/operator-ui/Dockerfile
+          - name: voltu-bridge-emitter
+            dockerfile: ./apps/voltu-bridge-emitter/Dockerfile
+          - name: voltu-ocpp-proxy
+            dockerfile: ./apps/voltu-ocpp-proxy/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.ref || github.sha }}
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Log in to the registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ matrix.image.name }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=long
+
+      - name: Build & push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.image.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.image.name }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.image.name }}
+
+  deploy:
+    name: Roll the stack on the host
+    needs: build
+    runs-on: ubuntu-latest
+    environment: production # add required reviewers here for a manual approval gate
+    permissions:
+      contents: read
+      packages: read # lets the passed-through GITHUB_TOKEN pull the images on the host
+    steps:
+      - name: SSH deploy
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_SSH_KEY }}
+          port: ${{ secrets.DEPLOY_PORT || '22' }}
+          envs: GHCR_USER,GHCR_TOKEN,DEPLOY_DIR,IMAGE_TAG,IMAGE_SHA
+          script_stop: true
+          script: |
+            set -euo pipefail
+            cd "${DEPLOY_DIR:-$HOME/citrineos-core}"
+            git fetch --all --prune
+            git checkout --force "${IMAGE_TAG}"
+            echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
+            # Deploy the exact image built for this commit (overrides VOLTU_IMAGE_TAG from .env),
+            # so a deploy is deterministic and a rollback is just re-running with an older ref.
+            export VOLTU_IMAGE_TAG="sha-${IMAGE_SHA}"
+            COMPOSE="docker compose -f docker-compose.yml -f docker-compose.voltu.yml --profile ui"
+            $COMPOSE pull
+            $COMPOSE up -d --remove-orphans
+            docker image prune -f
+        env:
+          GHCR_USER: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }} # built-in, short-lived; reused for the host pull
+          DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
+          IMAGE_TAG: ${{ github.event.inputs.ref || github.sha }}
+          IMAGE_SHA: ${{ github.sha }}

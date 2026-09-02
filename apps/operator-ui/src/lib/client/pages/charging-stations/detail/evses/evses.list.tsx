@@ -182,7 +182,7 @@ export const EVSESList: React.FC<EVSESListProps> = ({ id }) => {
         </Button>
       </div>
 
-      <div className="border rounded-lg overflow-hidden">
+      <div className="border rounded-sm overflow-hidden">
         <table className="w-full border-collapse">
           <thead className="bg-muted">
             <tr>

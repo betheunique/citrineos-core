@@ -189,13 +189,13 @@ export const ConnectionModal = ({ open, onClose, isFirstLogin = false }: Connect
 
         {showHelpContent ? (
           <div className="space-y-6">
-            <div className="border rounded-lg p-4">
+            <div className="border rounded-sm p-4">
               <h3 className="font-semibold mb-3">
                 {translate('ChargingStations.connectionModal.gettingStartedVideo')}
               </h3>
-              <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
+              <div className="aspect-video bg-muted rounded-sm flex items-center justify-center">
                 {helpVideoUrl ? (
-                  <video controls className="w-full h-full rounded-lg" poster="/video-poster.jpg">
+                  <video controls className="w-full h-full rounded-sm" poster="/video-poster.jpg">
                     <source src={helpVideoUrl} type="video/mp4" />
                     {translate('ChargingStations.connectionModal.videoNotSupported')}
                   </video>
@@ -212,7 +212,7 @@ export const ConnectionModal = ({ open, onClose, isFirstLogin = false }: Connect
               </p>
             </div>
 
-            <div className="border rounded-lg p-4">
+            <div className="border rounded-sm p-4">
               <h3 className="font-semibold mb-3">
                 {translate('ChargingStations.connectionModal.quickSteps')}
               </h3>
@@ -224,8 +224,8 @@ export const ConnectionModal = ({ open, onClose, isFirstLogin = false }: Connect
               </ol>
             </div>
 
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <p className="text-sm text-blue-800">
+            <div className="rounded-sm border border-primary/20 bg-primary/5 p-4">
+              <p className="text-sm text-foreground">
                 <strong>{translate('ChargingStations.connectionModal.rememberLabel')}</strong>{' '}
                 {translate('ChargingStations.connectionModal.rememberText')}
               </p>
@@ -242,7 +242,7 @@ export const ConnectionModal = ({ open, onClose, isFirstLogin = false }: Connect
               if (!servers?.length) return null;
 
               return (
-                <div key={profile} className="border border-transparent rounded-lg p-3">
+                <div key={profile} className="border border-transparent rounded-sm p-3">
                   <h3 className="font-semibold mb-2">
                     {translate(
                       `ChargingStations.connectionModal.securityProfiles.${profile}.label`,

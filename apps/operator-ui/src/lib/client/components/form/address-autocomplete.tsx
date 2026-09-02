@@ -158,7 +158,7 @@ export const AddressAutocomplete: React.FC<Props> = ({
         data-bwignore="true"
       />
       {showDropdown && (predictions.length > 0 || loading) && (
-        <ul className="absolute z-50 w-full mt-1 bg-popover text-popover-foreground border border-border rounded-md shadow-md max-h-60 overflow-auto">
+        <ul className="absolute z-50 w-full mt-1 bg-popover text-popover-foreground border border-border rounded-sm shadow-md max-h-60 overflow-auto">
           {loading && predictions.length === 0 && (
             <li className="px-3 py-2 text-sm text-muted-foreground">
               {translate('Common.loadingEllipsis')}

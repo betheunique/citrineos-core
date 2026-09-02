@@ -1,9 +1,17 @@
-/* 
+/*
  SPDX-FileCopyrightText: 2025 Contributors to the CitrineOS Project
 
  SPDX-License-Identifier: Apache-2.0
+
+ Voltu brand theme: the shadcn design tokens, fonts and radius are set to the Voltu design system
+ (cream/petrol/verdigris, Bricolage display + Instrument body + Martian mono). The Tailwind/shadcn wiring
+ is unchanged, so every button, form, dialog, popover and toast inherits the brand from here.
  */
 @import 'tailwindcss';
+
+/* Vendored copy of the canonical Voltu web theme (packages/theme-web/voltu.css in the Voltu monorepo).
+   The shadcn tokens below map to its --voltu-* variables. Re-sync this file when the brand changes. */
+@import './voltu-theme.css';
 
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
@@ -30,70 +38,73 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
 
-  /* Border radius */
+  /* Border radius (Voltu is crisp/editorial) */
   --radius-sm: calc(var(--radius) - 2px);
   --radius-md: calc(var(--radius));
   --radius-lg: calc(var(--radius) + 2px);
   --radius-xl: calc(var(--radius) + 6px);
 
-  /* Font */
-  --font-sans: var(--font-roobert), system-ui, sans-serif;
+  /* Fonts (Voltu): Instrument body, Bricolage display, Martian mono. --font-display generates a
+     `font-display` utility so titles carry the brand face even when they are not h1-h4 tags. */
+  --font-sans: var(--font-instrument), system-ui, sans-serif;
+  --font-display: var(--font-bricolage), Georgia, serif;
+  --font-mono: var(--font-martian), ui-monospace, monospace;
 
-  /* Non-themed Colors */
-  --light-mode: #ffae0b;
-  --light-mode-foreground: #442b00;
-  --dark-mode: #d7dcff;
-  --dark-mode-foreground: #000d37;
+  /* Theme-switch swatch colours (Voltu saffron for light, verdigris for dark) */
+  --light-mode: #e9861a;
+  --light-mode-foreground: #16211f;
+  --dark-mode: #2baa8e;
+  --dark-mode-foreground: #121a19;
 }
 
 :root {
-  --radius: 0.375rem;
+  --radius: 0.25rem;
 
-  /* Light mode colors */
-  --background: oklch(1 0 0);
-  --foreground: #131211;
-  --card: oklch(1 0 0);
-  --card-foreground: #131211;
-  --popover: oklch(1 0 0);
-  --popover-foreground: #131211;
-  --primary: #ffae0b;
-  --primary-foreground: #6e4900;
-  --secondary: #a5b2ff;
-  --secondary-foreground: #000d37;
-  --muted: #e7e6e4;
-  --muted-foreground: #32302e;
-  --accent: hsl(40, 5.88%, 95%);
-  --accent-foreground: #6e87ff;
-  --destructive: #f61631;
-  --success: #3db014;
-  --warning: #ff7300;
-  --border: #e7e6e4;
-  --input: #c3bdb9;
-  --ring: #9c9793;
+  /* Light mode: paper + petrol ink + verdigris, sourced from the vendored --voltu-* tokens */
+  --background: var(--voltu-paper);
+  --foreground: var(--voltu-ink);
+  --card: #ffffff;
+  --card-foreground: var(--voltu-ink);
+  --popover: #ffffff;
+  --popover-foreground: var(--voltu-ink);
+  --primary: var(--voltu-verdigris);
+  --primary-foreground: var(--voltu-paper);
+  --secondary: var(--voltu-paper-2);
+  --secondary-foreground: var(--voltu-ink);
+  --muted: var(--voltu-paper-2);
+  --muted-foreground: var(--voltu-ink-2);
+  --accent: var(--voltu-paper-2);
+  --accent-foreground: var(--voltu-verdigris);
+  --destructive: var(--voltu-ghost);
+  --success: var(--voltu-verified);
+  --warning: var(--voltu-saffron);
+  --border: var(--voltu-hair);
+  --input: rgba(22, 33, 31, 0.24);
+  --ring: var(--voltu-verdigris);
 }
 
 [data-theme='dark'] {
-  /* Dark mode colors */
-  --background: #16151e;
-  --foreground: #f0f0f0;
-  --card: #23242e;
-  --card-foreground: #f0f0f0;
-  --popover: #23242e;
-  --popover-foreground: #f0f0f0;
-  --primary: hsl(40.08, 100%, 60%);
-  --primary-foreground: #6e4900;
-  --secondary: #d7dcff;
-  --secondary-foreground: #00226e;
-  --muted: #32302e;
-  --muted-foreground: #c3bdb9;
-  --accent: hsl(234.55, 13.58%, 25%);
-  --accent-foreground: #a5b2ff;
-  --destructive: hsl(352.77, 92.56%, 60%);
-  --success: hsl(104.23, 79.59%, 40%);
-  --warning: #ffa45a;
-  --border: hsl(234.55, 13.58%, 30%);
-  --input: hsl(234.55, 13.58%, 35%);
-  --ring: hsl(234.55, 13.58%, 30%);
+  /* Dark mode: petrol + bone + brighter verdigris, sourced from the vendored --voltu-* tokens */
+  --background: var(--voltu-petrol);
+  --foreground: var(--voltu-bone);
+  --card: var(--voltu-petrol-2);
+  --card-foreground: var(--voltu-bone);
+  --popover: var(--voltu-petrol-2);
+  --popover-foreground: var(--voltu-bone);
+  --primary: var(--voltu-verdigris-bright);
+  --primary-foreground: var(--voltu-petrol);
+  --secondary: var(--voltu-petrol-3);
+  --secondary-foreground: var(--voltu-bone);
+  --muted: var(--voltu-petrol-3);
+  --muted-foreground: var(--voltu-bone-2);
+  --accent: var(--voltu-petrol-3);
+  --accent-foreground: var(--voltu-verdigris-bright);
+  --destructive: var(--voltu-ghost-soft);
+  --success: var(--voltu-verdigris-bright);
+  --warning: var(--voltu-saffron-bright);
+  --border: var(--voltu-hair-on-dark);
+  --input: rgba(233, 232, 225, 0.26);
+  --ring: var(--voltu-verdigris-bright);
 }
 
 @layer base {
@@ -104,5 +115,44 @@
 
   body {
     @apply bg-background text-foreground;
+    /* Voltu's signature ruled-paper texture. Theme-aware: faint ink lines on cream, faint bone lines on
+       petrol, every 34px, mixed from the foreground so it reads in both modes. */
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0 33px,
+      color-mix(in srgb, var(--foreground) 4%, transparent) 33px 34px
+    );
+    background-attachment: fixed;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-bricolage), Georgia, serif;
+    letter-spacing: -0.02em;
+  }
+
+  /* Editorial touches on the shadcn slots, so they read as Voltu without touching each component: card,
+     dialog and popup titles in the display face; toasts get the crisp Voltu corner + brand face. */
+  [data-slot='card-title'],
+  [data-slot='dialog-title'],
+  [data-slot='alert-dialog-title'],
+  [data-slot='sheet-title'] {
+    font-family: var(--font-bricolage), Georgia, serif;
+    letter-spacing: -0.015em;
+  }
+
+  [data-sonner-toast] {
+    border-radius: var(--radius);
+    font-family: var(--font-sans);
+  }
+
+  /* Align every lucide icon to the Voltu icon geometry: butt caps + miter joins + zero corner radius,
+     matching the hand-drawn VoltuIcon family. CSS beats lucide's round-cap presentation attributes, so
+     this crisps up all ~50 icons app-wide with no per-file changes. Custom VoltuIcons carry the nav/status. */
+  svg.lucide {
+    stroke-linecap: butt;
+    stroke-linejoin: miter;
   }
 }

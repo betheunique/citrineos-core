@@ -5,6 +5,7 @@
 
 import { useTheme } from 'next-themes';
 import { Button } from '@lib/client/components/ui/button';
+import { cn } from '@lib/utils/cn';
 import { Moon, Sun } from 'lucide-react';
 import { sidebarIconSize } from '@lib/client/styles/icon';
 import {
@@ -38,11 +39,12 @@ export const ThemeToggle = ({ expanded }: { expanded: boolean }) => {
         <TooltipTrigger asChild>
           <Button
             size={expanded ? 'default' : 'icon'}
-            className={
+            className={cn(
               theme === 'light'
                 ? 'bg-(--light-mode) text-(--light-mode-foreground) hover:bg-(--light-mode-foreground) hover:text-(--light-mode)'
-                : 'bg-(--dark-mode) text-(--dark-mode-foreground) hover:bg-(--dark-mode-foreground) hover:text-(--dark-mode)'
-            }
+                : 'bg-(--dark-mode) text-(--dark-mode-foreground) hover:bg-(--dark-mode-foreground) hover:text-(--dark-mode)',
+              expanded && 'w-full justify-start',
+            )}
             onClick={onToggleTheme}
           >
             {theme === 'light' ? (

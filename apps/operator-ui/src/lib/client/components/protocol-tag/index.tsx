@@ -14,25 +14,28 @@ const ProtocolTag = ({ protocol }: { protocol: string | null | undefined }) => {
 
   switch (protocol) {
     case OCPPVersion.OCPP1_6:
-      colorClass = 'bg-cyan-100 text-cyan-800 hover:bg-cyan-100 border-cyan-200';
+      colorClass =
+        'bg-teal-100 text-teal-800 border-teal-200 dark:bg-teal-500/15 dark:text-teal-300 dark:border-teal-500/30';
       protocolName = 'OCPP 1.6';
       break;
     case OCPPVersion.OCPP2_0_1:
-      colorClass = 'bg-purple-100 text-purple-800 hover:bg-purple-100 border-purple-200';
+      colorClass =
+        'bg-indigo-100 text-indigo-800 border-indigo-200 dark:bg-indigo-500/15 dark:text-indigo-300 dark:border-indigo-500/30';
       protocolName = 'OCPP 2.0.1';
       break;
     case OCPPVersion.OCPP2_1:
-      colorClass = 'bg-indigo-100 text-indigo-800 hover:bg-indigo-100 border-indigo-200';
+      colorClass =
+        'bg-sky-100 text-sky-800 border-sky-200 dark:bg-sky-500/15 dark:text-sky-300 dark:border-sky-500/30';
       protocolName = 'OCPP 2.1';
       break;
     default:
-      colorClass = 'bg-gray-100 text-gray-800 hover:bg-gray-100 border-gray-200';
+      colorClass = 'bg-muted text-muted-foreground border-border';
       protocolName = translate('Common.unknown');
       break;
   }
 
   return (
-    <Badge variant="outline" className={cn(colorClass)}>
+    <Badge variant="outline" className={cn('font-mono', colorClass)}>
       {protocolName}
     </Badge>
   );

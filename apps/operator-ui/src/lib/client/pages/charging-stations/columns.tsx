@@ -25,6 +25,7 @@ import { isEmpty } from '@lib/utils/assertion';
 import { EMPTY_VALUE } from '@lib/utils/consts';
 import { badgeListStyle } from '@lib/client/styles/page';
 import { Badge } from '@lib/client/components/ui/badge';
+import { StatusBadge } from '@lib/client/components/ui/status-badge';
 import { TimestampDisplay } from '@lib/client/components/timestamp-display';
 
 type TranslateFn = (key: string, options?: any) => string;
@@ -75,9 +76,10 @@ export const getChargingStationsColumns = (
         label: t('ChargingStations.columns.onlineStatus', 'Online status'),
       },
       cellRender: ({ row }: CellContext<ChargingStationDetailsDto, unknown>) => (
-        <span className={row.original.isOnline ? 'text-success' : 'text-destructive'}>
-          {row.original.isOnline ? t('Common.online', 'Online') : t('Common.offline', 'Offline')}
-        </span>
+        <StatusBadge
+          status={row.original.isOnline ? 'live' : 'offline'}
+          label={row.original.isOnline ? t('Common.online', 'Online') : t('Common.offline', 'Offline')}
+        />
       ),
     },
     {

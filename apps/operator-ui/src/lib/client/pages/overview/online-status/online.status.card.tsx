@@ -19,8 +19,9 @@ import { ChargerStatusEnum } from '@lib/utils/enums';
 import { OverviewCardSkeleton } from '@lib/client/pages/overview/overview.card.skeleton';
 
 const statusFlex = 'flex flex-col gap-2';
-const statusLabelStyle = 'text-5xl';
-const statusIndicatorFlex = 'flex items-center gap-2';
+const statusLabelStyle = 'font-mono text-5xl tabular-nums';
+const statusIndicatorFlex =
+  'flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted-foreground';
 
 export const OnlineStatusCard = () => {
   const { push } = useRouter();
@@ -81,7 +82,7 @@ export const OnlineStatusCard = () => {
         </CardHeader>
         <CardContent>
           {error ? (
-            <p>{translate('Overview.errorLoadingData')}</p>
+            <p className="text-sm text-muted-foreground">{translate('Overview.errorLoadingData')}</p>
           ) : (
             <div className="flex items-center gap-12">
               <div className={statusFlex}>

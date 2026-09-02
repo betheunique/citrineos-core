@@ -138,7 +138,7 @@ export const DeleteCertificateModal = ({ station }: DeleteCertificateModalProps)
     const certificate = JSON.parse(stringifiedCertificate);
 
     return (
-      <div className="flex flex-col gap-2 rounded-md bg-muted p-4 text-sm">
+      <div className="flex flex-col gap-2 rounded-sm bg-muted p-4 text-sm">
         <span>
           <span className="font-semibold">
             {translate('ChargingStations.deleteCertificateModal.hashAlgorithm')}

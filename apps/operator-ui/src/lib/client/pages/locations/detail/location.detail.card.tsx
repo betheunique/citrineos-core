@@ -119,11 +119,11 @@ export const LocationDetailCard = ({ location, imageUrl }: LocationDetailCardPro
           </div>
           {/* Right: Image */}
           {imageUrl && (
-            <div className="flex-shrink-0 w-64 md:w-48 sm:w-32 h-64 md:h-48 sm:h-32 flex items-center justify-center bg-gray-100 rounded-md">
+            <div className="flex-shrink-0 w-64 md:w-48 sm:w-32 h-64 md:h-48 sm:h-32 flex items-center justify-center bg-muted rounded-sm">
               <Image
                 src={imageUrl}
                 alt={translate('Locations.detail.imageAlt', { name: location.name })}
-                className="w-full h-full object-contain rounded-md bg-gray-100"
+                className="w-full h-full object-contain rounded-sm bg-muted"
                 onError={(e) => {
                   (e.currentTarget as HTMLImageElement).style.display = 'none';
                 }}

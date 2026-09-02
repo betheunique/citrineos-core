@@ -42,16 +42,16 @@ export const PluginSuccessRateCard = () => {
         </CardHeader>
         <CardContent>
           {error ? (
-            <p>{translate('Overview.errorLoadingData')}</p>
+            <p className="text-sm text-muted-foreground">{translate('Overview.errorLoadingData')}</p>
           ) : (
             <div className="flex flex-col gap-4">
-              <div className="w-full h-6 bg-gray-200 rounded-full overflow-hidden">
+              <div className="w-full h-6 bg-muted rounded-full overflow-hidden">
                 <div
                   className="h-full bg-primary transition-all duration-300"
                   style={{ width: `${roundedPercentage}%` }}
                 />
               </div>
-              <div className="text-3xl">{roundedPercentage}%</div>
+              <div className="font-mono text-3xl tabular-nums">{roundedPercentage}%</div>
             </div>
           )}
         </CardContent>

@@ -5,22 +5,11 @@
 
 import { Logo } from '@lib/client/components/title';
 import { cn } from '@lib/utils/cn';
-import {
-  ArrowLeftRight,
-  ChevronLeft,
-  ChevronRight,
-  Clipboard,
-  EvCharger,
-  HelpCircle,
-  Home,
-  MapPin,
-  Receipt,
-  Users,
-} from 'lucide-react';
+import { VoltuIcon } from '@lib/client/components/icons/voltu-icons';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@lib/client/components/ui/button';
-import { sidebarIconSize } from '@lib/client/styles/icon';
+import { buttonIconSize, sidebarIconSize } from '@lib/client/styles/icon';
 import { ThemeToggle } from '@lib/client/components/theme-toggle';
 import { LocaleSwitcher } from '@lib/client/components/locale-switcher';
 import { ConnectionModal } from '@lib/client/components/modals/shared/connection-modal/connection.modal';
@@ -67,37 +56,37 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
     {
       key: `/${MenuSection.OVERVIEW}`,
       label: translate('menu.overview'),
-      icon: <Home className={sidebarIconSize} />,
+      icon: <VoltuIcon name="today" className={sidebarIconSize} />,
     },
     {
       key: `/${MenuSection.LOCATIONS}`,
       label: translate('Locations.Locations'),
-      icon: <MapPin className={sidebarIconSize} />,
+      icon: <VoltuIcon name="locate" className={sidebarIconSize} />,
     },
     {
       key: `/${MenuSection.CHARGING_STATIONS}`,
       label: translate('ChargingStations.ChargingStations'),
-      icon: <EvCharger className={sidebarIconSize} />,
+      icon: <VoltuIcon name="bolt" className={sidebarIconSize} />,
     },
     {
       key: `/${MenuSection.AUTHORIZATIONS}`,
       label: translate('Authorizations.Authorizations'),
-      icon: <Clipboard className={sidebarIconSize} />,
+      icon: <VoltuIcon name="doc" className={sidebarIconSize} />,
     },
     {
       key: `/${MenuSection.TRANSACTIONS}`,
       label: translate('Transactions.Transactions'),
-      icon: <ArrowLeftRight className={sidebarIconSize} />,
+      icon: <VoltuIcon name="swap" className={sidebarIconSize} />,
     },
     {
       key: `/${MenuSection.TARIFFS}`,
       label: translate('Tariffs.Tariffs'),
-      icon: <Receipt className={sidebarIconSize} />,
+      icon: <VoltuIcon name="card" className={sidebarIconSize} />,
     },
     {
       key: `/${MenuSection.PARTNERS}`,
       label: translate('TenantPartners.TenantPartners'),
-      icon: <Users className={sidebarIconSize} />,
+      icon: <VoltuIcon name="users" className={sidebarIconSize} />,
     },
   ];
 
@@ -125,7 +114,7 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
                   <Link
                     href={item.key}
                     className={cn(
-                      'flex items-center gap-3 px-3 py-3 rounded-md transition-colors text-sm',
+                      'flex items-center gap-3 px-3 py-3 rounded-sm transition-colors text-sm',
                       'hover:bg-accent hover:text-accent-foreground',
                       isActive
                         ? 'bg-accent text-accent-foreground font-medium'
@@ -144,15 +133,22 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
         </nav>
 
         {/* Bottom Menu - Help Link */}
-        <div className="border-t border-border p-3 flex flex-col gap-2 items-center">
+        <div
+          className={cn(
+            'border-t border-border p-3 flex flex-col gap-2',
+            collapsed ? 'items-center' : 'items-stretch',
+          )}
+        >
           <ThemeToggle expanded={!collapsed} />
           <LocaleSwitcher expanded={!collapsed} />
           <Button
             variant="ghost"
+            size={collapsed ? 'icon' : 'default'}
             onClick={() => setIsHelpOpen(true)}
             title={translate('menu.help')}
+            className={cn(!collapsed && 'w-full justify-start')}
           >
-            <HelpCircle className={sidebarIconSize} />
+            <VoltuIcon name="help" className={sidebarIconSize} />
             {!collapsed && <span>{translate('menu.help')}</span>}
           </Button>
           <LogoutButton expanded={!collapsed} />
@@ -168,9 +164,9 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
           }
         >
           {collapsed ? (
-            <ChevronRight className={sidebarIconSize} />
+            <VoltuIcon name="chev" className={buttonIconSize} />
           ) : (
-            <ChevronLeft className={sidebarIconSize} />
+            <VoltuIcon name="chev_left" className={buttonIconSize} />
           )}
         </Button>
       </aside>

@@ -21,7 +21,7 @@ export const DateTimePicker = ({
       <PopoverTrigger asChild>
         <div
           data-empty={!date}
-          className="cursor-default data-[empty=true]:text-muted-foreground flex items-center justify-between text-sm px-3 py-1 text-sm shadow-sm font-normal h-9 w-full rounded-md border border-input bg-transparent"
+          className="cursor-default data-[empty=true]:text-muted-foreground flex items-center justify-between text-sm px-3 py-1 text-sm font-normal h-9 w-full rounded-sm border border-input bg-transparent"
         >
           <div className="flex items-center gap-1">
             <CalendarIcon className={buttonIconSize} />

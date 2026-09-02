@@ -1,0 +1,43 @@
+# SPDX-FileCopyrightText: 2025 Voltu
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Voltu overlay for the CitrineOS base stack. Apply it ON TOP of docker-compose.yml:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.voltu.yml --profile ui pull
+#   docker compose -f docker-compose.yml -f docker-compose.voltu.yml --profile ui up -d
+#
+# It (1) swaps the operator UI for the Voltu-branded image and (2) adds the two telemetry sidecars
+# (bridge-emitter, ocpp-proxy). All image coordinates and secrets come from a `.env` file next to the
+# compose files (see .env.deploy.example) so the same overlay works on any host / registry.
+services:
+  citrine-ui:
+    image: ${VOLTU_REGISTRY:-ghcr.io/REPLACE_ME}/voltu-operator-ui:${VOLTU_IMAGE_TAG:-latest}
+    pull_policy: always
+
+  # Mode A durable replicator: tails the CitrineOS DB and POSTs signed envelopes to the Voltu bridge.
+  voltu-bridge-emitter:
+    image: ${VOLTU_REGISTRY:-ghcr.io/REPLACE_ME}/voltu-bridge-emitter:${VOLTU_IMAGE_TAG:-latest}
+    pull_policy: always
+    restart: unless-stopped
+    environment:
+      VOLTU_DATABASE_URL: ${VOLTU_DATABASE_URL}
+      VOLTU_BRIDGE_URL: ${VOLTU_BRIDGE_URL}
+      CITRINE_BRIDGE_SECRET: ${CITRINE_BRIDGE_SECRET}
+    depends_on:
+      ocpp-db:
+        condition: service_healthy
+
+  # Mode B passive proxy: chargers point here; it relays to the incumbent CSMS and forks a copy to the bridge.
+  # Only needed for parallel-mode owners; harmless to run otherwise (it just waits for connections).
+  voltu-ocpp-proxy:
+    image: ${VOLTU_REGISTRY:-ghcr.io/REPLACE_ME}/voltu-ocpp-proxy:${VOLTU_IMAGE_TAG:-latest}
+    pull_policy: always
+    restart: unless-stopped
+    environment:
+      VOLTU_PROXY_UPSTREAM: ${VOLTU_PROXY_UPSTREAM}
+      VOLTU_BRIDGE_URL: ${VOLTU_BRIDGE_URL}
+      CITRINE_BRIDGE_SECRET: ${CITRINE_BRIDGE_SECRET}
+      VOLTU_PROXY_PORT: "9310"
+    ports:
+      - "9310:9310"

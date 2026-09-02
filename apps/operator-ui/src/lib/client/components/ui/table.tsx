@@ -57,7 +57,8 @@ function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
     <th
       data-slot="table-head"
       className={cn(
-        'text-foreground h-10 px-2 text-left align-middle font-medium whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
+        // Voltu column labels: Martian Mono, uppercase, letter-spaced, muted (the marketing-site table voice).
+        'text-muted-foreground h-10 px-2 text-left align-middle font-mono text-xs font-medium tracking-wider uppercase whitespace-nowrap [&:has([role=checkbox])]:pr-0 [&>[role=checkbox]]:translate-y-[2px]',
         className,
       )}
       {...props}
