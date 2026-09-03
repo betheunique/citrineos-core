@@ -61,16 +61,16 @@ jobs:
         with:
           name: swagger-json
 
-      - name: Checkout citrineos.github.io
+      - name: Checkout betheunique.github.io
         uses: actions/checkout@v4
         with:
-          repository: citrineos/citrineos.github.io
+          repository: betheunique/betheunique.github.io
           ssh-key: ${{ secrets.CITRINEOS_GITHUB_IO_DEPLOY_KEY }}
-          path: citrineos.github.io
+          path: betheunique.github.io
 
       - name: Push Swagger JSON
         run: |
-          cd citrineos.github.io
+          cd betheunique.github.io
           git checkout -b swagger-updates || git checkout swagger-updates
           cp ../swagger.json ./docs/assets
           git config user.name "GitHub Actions"

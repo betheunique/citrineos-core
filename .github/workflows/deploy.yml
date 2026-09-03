@@ -119,13 +119,27 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || '22' }}
-          envs: GHCR_USER,GHCR_TOKEN,DEPLOY_DIR,IMAGE_TAG,IMAGE_SHA
+          envs: GHCR_USER,GHCR_TOKEN,DEPLOY_DIR,IMAGE_TAG,IMAGE_SHA,REPO
           script_stop: true
           script: |
             set -euo pipefail
-            cd "${DEPLOY_DIR:-$HOME/citrineos-core}"
-            git fetch --all --prune
-            git checkout --force "${IMAGE_TAG}"
+            DIR="${DEPLOY_DIR:-$HOME/citrineos-core}"
+            REPO_URL="https://x-access-token:${GHCR_TOKEN}@github.com/${REPO}.git"
+            # Self-provision the repo tree: works whether DIR is missing, empty, or an existing checkout, so a
+            # fresh box needs no manual `git clone`. The base compose references files/volumes from this tree.
+            mkdir -p "$DIR"
+            git config --global --add safe.directory "$DIR" || true
+            cd "$DIR"
+            [ -d .git ] || git init -q
+            git remote remove origin 2>/dev/null || true
+            git remote add origin "$REPO_URL"
+            git fetch -q --depth=1 origin "${IMAGE_TAG}"
+            git remote set-url origin "https://github.com/${REPO}.git"   # scrub the short-lived token from .git/config
+            # Preserve host-managed config across the checkout: .env (compose) is untracked and safe, but
+            # apps/operator-ui/.env.local is tracked upstream with dev defaults, so back it up and restore it.
+            [ -f apps/operator-ui/.env.local ] && cp apps/operator-ui/.env.local /tmp/voltu-ui-env.bak || true
+            git checkout -q -f FETCH_HEAD
+            [ -f /tmp/voltu-ui-env.bak ] && mv /tmp/voltu-ui-env.bak apps/operator-ui/.env.local || true
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             # Deploy the exact image built for this commit (overrides VOLTU_IMAGE_TAG from .env),
             # so a deploy is deterministic and a rollback is just re-running with an older ref.
@@ -140,3 +154,4 @@ jobs:
           DEPLOY_DIR: ${{ secrets.DEPLOY_DIR }}
           IMAGE_TAG: ${{ github.event.inputs.ref || github.sha }}
           IMAGE_SHA: ${{ github.sha }}
+          REPO: ${{ github.repository }}
