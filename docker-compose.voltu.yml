@@ -23,6 +23,13 @@ services:
     image: ${OCPP_DB_IMAGE:-imresamu/postgis:16-3.5}
     platform: ${OCPP_DB_PLATFORM:-linux/arm64}
 
+  # hasura reads its metadata over this bind mount as a non-root user. `:z` relabels the host dir for shared
+  # SELinux container access (Oracle Linux enforces SELinux). Unlike Podman's `:U`, `:z` is a standard Docker
+  # option, so the docker-compose provider passes it through. Harmless on non-SELinux hosts.
+  graphql-engine:
+    volumes:
+      - ./apps/ocpp-server/hasura-metadata:/hasura-metadata:z
+
   # Recent minio images ship without curl, so the base healthcheck can sit "unhealthy" forever and block the
   # startup chain. The core uses LOCAL file access (not minio), so don't gate startup on minio being healthy —
   # start minio-init once minio is up. minio-init already tolerates a not-yet-ready minio (its mc call is

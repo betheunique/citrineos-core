@@ -149,6 +149,17 @@ jobs:
             # Deploy the exact image built for this commit (overrides VOLTU_IMAGE_TAG from .env),
             # so a deploy is deterministic and a rollback is just re-running with an older ref.
             export VOLTU_IMAGE_TAG="sha-${IMAGE_SHA}"
+            # Rootless Podman only: RabbitMQ runs as uid 999 and doesn't chown its data dir, and the
+            # docker-compose provider doesn't pass Podman's `:U`, so pre-own the bind mount for uid 999 in
+            # the user namespace. No-op on Docker hosts (podman not installed). Persists on disk, but this
+            # keeps a fresh/wiped box self-healing.
+            if command -v podman >/dev/null 2>&1; then
+              mkdir -p apps/ocpp-server/data/rabbitmq
+              podman unshare chown -R 999:999 apps/ocpp-server/data/rabbitmq || true
+              # hasura runs as a non-root user and reads its repo-tracked metadata dir over a bind mount;
+              # make it world-readable so the container user can access it under the user namespace.
+              chmod -R a+rX apps/ocpp-server/hasura-metadata || true
+            fi
             COMPOSE="docker compose -f docker-compose.yml -f docker-compose.voltu.yml --profile ui"
             $COMPOSE pull
             $COMPOSE up -d --remove-orphans
