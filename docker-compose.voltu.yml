@@ -29,7 +29,10 @@ services:
   # portable. RabbitMQ state is ephemeral (the broker rebuilds it), so the volume location does not matter.
   amqp-broker:
     volumes:
-      - voltu_rabbitmq:/var/lib/rabbitmq
+      # `:U` makes rootless Podman recursively chown the volume to the container's user (rabbitmq = 999) on
+      # start, which is the reliable fix for the .erlang.cookie eacces. Podman-specific; a Docker host would
+      # drop the `:U` (Docker manages volume ownership itself).
+      - voltu_rabbitmq:/var/lib/rabbitmq:U
 
   # hasura/graphql-engine has no arm64 image for this tag, so pull the amd64 variant and run it emulated
   # (the host needs binfmt — see the README). It is the operator UI's GraphQL backend, low traffic, so
