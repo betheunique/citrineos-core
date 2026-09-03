@@ -23,6 +23,14 @@ services:
     image: ${OCPP_DB_IMAGE:-imresamu/postgis:16-3.5}
     platform: ${OCPP_DB_PLATFORM:-linux/arm64}
 
+  # RabbitMQ runs as its own non-root user (999) and does NOT chown its data dir, so a host bind mount owned
+  # by the rootless user leaves it unable to read/write .erlang.cookie (eacces). A named volume inherits the
+  # image's 999:999 ownership on first use (both Podman and Docker do this), which fixes it cleanly and stays
+  # portable. RabbitMQ state is ephemeral (the broker rebuilds it), so the volume location does not matter.
+  amqp-broker:
+    volumes:
+      - voltu_rabbitmq:/var/lib/rabbitmq
+
   # hasura/graphql-engine has no arm64 image for this tag, so pull the amd64 variant and run it emulated
   # (the host needs binfmt — see the README). It is the operator UI's GraphQL backend, low traffic, so
   # emulation is fine. amd64 hosts leave HASURA_PLATFORM at linux/amd64 (native there).
@@ -64,3 +72,6 @@ services:
       VOLTU_PROXY_PORT: "9310"
     ports:
       - "9310:9310"
+
+volumes:
+  voltu_rabbitmq:
