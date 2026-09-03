@@ -23,23 +23,6 @@ services:
     image: ${OCPP_DB_IMAGE:-imresamu/postgis:16-3.5}
     platform: ${OCPP_DB_PLATFORM:-linux/arm64}
 
-  # RabbitMQ runs as its own non-root user (999) and does NOT chown its data dir, so a host bind mount owned
-  # by the rootless user leaves it unable to read/write .erlang.cookie (eacces). A named volume inherits the
-  # image's 999:999 ownership on first use (both Podman and Docker do this), which fixes it cleanly and stays
-  # portable. RabbitMQ state is ephemeral (the broker rebuilds it), so the volume location does not matter.
-  amqp-broker:
-    volumes:
-      # `:U` makes rootless Podman recursively chown the volume to the container's user (rabbitmq = 999) on
-      # start, which is the reliable fix for the .erlang.cookie eacces. Podman-specific; a Docker host would
-      # drop the `:U` (Docker manages volume ownership itself).
-      - voltu_rabbitmq:/var/lib/rabbitmq:U
-
-  # hasura/graphql-engine has no arm64 image for this tag, so pull the amd64 variant and run it emulated
-  # (the host needs binfmt — see the README). It is the operator UI's GraphQL backend, low traffic, so
-  # emulation is fine. amd64 hosts leave HASURA_PLATFORM at linux/amd64 (native there).
-  graphql-engine:
-    platform: ${HASURA_PLATFORM:-linux/amd64}
-
   # Recent minio images ship without curl, so the base healthcheck can sit "unhealthy" forever and block the
   # startup chain. The core uses LOCAL file access (not minio), so don't gate startup on minio being healthy —
   # start minio-init once minio is up. minio-init already tolerates a not-yet-ready minio (its mc call is
@@ -75,6 +58,3 @@ services:
       VOLTU_PROXY_PORT: "9310"
     ports:
       - "9310:9310"
-
-volumes:
-  voltu_rabbitmq:
