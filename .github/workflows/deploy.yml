@@ -144,7 +144,7 @@ jobs:
             # Deploy the exact image built for this commit (overrides VOLTU_IMAGE_TAG from .env),
             # so a deploy is deterministic and a rollback is just re-running with an older ref.
             export VOLTU_IMAGE_TAG="sha-${IMAGE_SHA}"
-            COMPOSE="docker compose -f docker-compose.yml -f docker-compose.voltu.yml --profile ui"
+            COMPOSE="sudo docker compose -f docker-compose.yml -f docker-compose.voltu.yml --profile ui"
             $COMPOSE pull
             $COMPOSE up -d --remove-orphans
             docker image prune -f
