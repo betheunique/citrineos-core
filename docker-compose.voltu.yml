@@ -15,12 +15,19 @@ services:
     image: ${VOLTU_REGISTRY:-ghcr.io/REPLACE_ME}/voltu-operator-ui:${VOLTU_IMAGE_TAG:-latest}
     pull_policy: always
 
-  # The base compose pins ocpp-db to linux/amd64; on an arm64 host (Oracle Ampere) that needs emulation and
-  # fails to start without binfmt. Run it native instead — postgis/postgis:16-3.5 is multi-arch. amd64 hosts
-  # set OCPP_DB_PLATFORM=linux/amd64 in .env (and, only if their postgis tag lacks arm64, OCPP_DB_IMAGE).
+  # The base compose pins ocpp-db to linux/amd64. On arm64 (Oracle Ampere) run it native — but the official
+  # postgis/postgis image has no arm64 variant for this tag, so use imresamu/postgis (a multi-arch drop-in,
+  # same Postgres 16 + PostGIS 3.5, same env/data dir). amd64 hosts set OCPP_DB_PLATFORM=linux/amd64 and can
+  # switch OCPP_DB_IMAGE back to postgis/postgis:16-3.5.
   ocpp-db:
-    image: ${OCPP_DB_IMAGE:-postgis/postgis:16-3.5}
+    image: ${OCPP_DB_IMAGE:-imresamu/postgis:16-3.5}
     platform: ${OCPP_DB_PLATFORM:-linux/arm64}
+
+  # hasura/graphql-engine has no arm64 image for this tag, so pull the amd64 variant and run it emulated
+  # (the host needs binfmt — see the README). It is the operator UI's GraphQL backend, low traffic, so
+  # emulation is fine. amd64 hosts leave HASURA_PLATFORM at linux/amd64 (native there).
+  graphql-engine:
+    platform: ${HASURA_PLATFORM:-linux/amd64}
 
   # Recent minio images ship without curl, so the base healthcheck can sit "unhealthy" forever and block the
   # startup chain. The core uses LOCAL file access (not minio), so don't gate startup on minio being healthy —
