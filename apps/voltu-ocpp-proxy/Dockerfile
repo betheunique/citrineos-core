@@ -13,7 +13,7 @@ RUN mkdir -p /out \
  && cp apps/voltu-ocpp-proxy/package.json /out/package.json \
  && cd /out \
  && npm pkg delete devDependencies scripts \
- && npm install --omit=dev --no-audit --no-fund
+ && npm install --omit=dev --omit=optional --no-audit --no-fund
 
 FROM node:24.16.0-alpine AS runner
 WORKDIR /app
