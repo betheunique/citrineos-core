@@ -133,7 +133,7 @@ jobs:
           username: ${{ secrets.DEPLOY_USER }}
           key: ${{ secrets.DEPLOY_SSH_KEY }}
           port: ${{ secrets.DEPLOY_PORT || '22' }}
-          envs: GHCR_USER,GHCR_TOKEN,DEPLOY_DIR,IMAGE_TAG,IMAGE_SHA,REPO
+          envs: GHCR_USER,GHCR_TOKEN,DEPLOY_DIR,IMAGE_TAG,IMAGE_SHA,REPO,REGISTRY,PUBLIC_ORIGIN,OCPP_DB_PLATFORM,VOLTU_DATABASE_URL,VOLTU_BRIDGE_URL,CITRINE_BRIDGE_SECRET,VOLTU_PROXY_UPSTREAM,HASURA_ADMIN_SECRET,NEXTAUTH_SECRET,ADMIN_EMAIL,ADMIN_PASSWORD,GOOGLE_MAPS_API_KEY
           script_stop: true
           script: |
             set -euo pipefail
@@ -149,11 +149,32 @@ jobs:
             git remote add origin "$REPO_URL"
             git fetch -q --depth=1 origin "${IMAGE_TAG}"
             git remote set-url origin "https://github.com/${REPO}.git"   # scrub the short-lived token from .git/config
-            # Preserve host-managed config across the checkout: .env (compose) is untracked and safe, but
-            # apps/operator-ui/.env.local is tracked upstream with dev defaults, so back it up and restore it.
-            [ -f apps/operator-ui/.env.local ] && cp apps/operator-ui/.env.local /tmp/voltu-ui-env.bak || true
             git checkout -q -f FETCH_HEAD
-            [ -f /tmp/voltu-ui-env.bak ] && mv /tmp/voltu-ui-env.bak apps/operator-ui/.env.local || true
+            # Generate the host env files from GitHub Secrets/Variables (the single source of truth). Written
+            # 0600, never committed; printf inserts the literal values, and there is no `set -x`, so secrets
+            # are not echoed to the log. HASURA_ADMIN_SECRET is shared: Hasura validates it, the UI sends it.
+            umask 077
+            {
+              printf 'VOLTU_REGISTRY=%s\n' "$REGISTRY"
+              printf 'VOLTU_IMAGE_TAG=latest\n'
+              printf 'OCPP_DB_PLATFORM=%s\n' "$OCPP_DB_PLATFORM"
+              printf 'VOLTU_DATABASE_URL=%s\n' "$VOLTU_DATABASE_URL"
+              printf 'VOLTU_BRIDGE_URL=%s\n' "$VOLTU_BRIDGE_URL"
+              printf 'CITRINE_BRIDGE_SECRET=%s\n' "$CITRINE_BRIDGE_SECRET"
+              printf 'VOLTU_PROXY_UPSTREAM=%s\n' "$VOLTU_PROXY_UPSTREAM"
+              printf 'HASURA_GRAPHQL_ADMIN_SECRET=%s\n' "$HASURA_ADMIN_SECRET"
+              printf 'PUBLIC_ORIGIN=%s\n' "$PUBLIC_ORIGIN"
+            } > .env
+            mkdir -p apps/operator-ui
+            {
+              printf 'NEXTAUTH_URL=%s\n' "$PUBLIC_ORIGIN"
+              printf 'NEXTAUTH_SECRET=%s\n' "$NEXTAUTH_SECRET"
+              printf 'ADMIN_EMAIL=%s\n' "$ADMIN_EMAIL"
+              printf 'ADMIN_PASSWORD=%s\n' "$ADMIN_PASSWORD"
+              printf 'HASURA_ADMIN_SECRET=%s\n' "$HASURA_ADMIN_SECRET"
+              printf 'GOOGLE_MAPS_API_KEY=%s\n' "$GOOGLE_MAPS_API_KEY"
+              printf 'ALLOW_IMAGE_UPLOAD=false\n'
+            } > apps/operator-ui/.env.local
             echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
             # Deploy the exact image built for this commit (overrides VOLTU_IMAGE_TAG from .env),
             # so a deploy is deterministic and a rollback is just re-running with an older ref.
@@ -192,3 +213,16 @@ jobs:
           IMAGE_TAG: ${{ github.event.inputs.ref || github.sha }}
           IMAGE_SHA: ${{ github.sha }}
           REPO: ${{ github.repository }}
+          # Host env files are generated from these. Secrets are sensitive; the rest are repo Variables/derived.
+          REGISTRY: ${{ env.REGISTRY }}
+          PUBLIC_ORIGIN: https://${{ env.DASHBOARD_DOMAIN }}
+          OCPP_DB_PLATFORM: ${{ vars.OCPP_DB_PLATFORM || 'linux/arm64' }}
+          VOLTU_PROXY_UPSTREAM: ${{ vars.VOLTU_PROXY_UPSTREAM }}
+          ADMIN_EMAIL: ${{ vars.ADMIN_EMAIL || 'admin@voltu.energy' }}
+          VOLTU_DATABASE_URL: ${{ secrets.VOLTU_DATABASE_URL || 'postgres://citrine:citrine@ocpp-db:5432/citrine' }}
+          VOLTU_BRIDGE_URL: ${{ secrets.VOLTU_BRIDGE_URL }}
+          CITRINE_BRIDGE_SECRET: ${{ secrets.CITRINE_BRIDGE_SECRET }}
+          HASURA_ADMIN_SECRET: ${{ secrets.HASURA_ADMIN_SECRET }}
+          NEXTAUTH_SECRET: ${{ secrets.NEXTAUTH_SECRET }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          GOOGLE_MAPS_API_KEY: ${{ secrets.GOOGLE_MAPS_API_KEY }}

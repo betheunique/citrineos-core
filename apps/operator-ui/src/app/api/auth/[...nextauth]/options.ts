@@ -122,10 +122,17 @@ const getProvider = () => {
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials, _req) {
+        // Read the admin creds at RUNTIME (from the container env) so they can be set/rotated without a
+        // rebuild. config.adminEmail is NEXT_PUBLIC_* — compiled into the image at build time — so it can't
+        // be changed post-build; process.env.ADMIN_EMAIL overrides it at runtime. Password was already runtime.
+        const adminEmail = process.env.ADMIN_EMAIL || config.adminEmail;
+        const adminPassword = process.env.ADMIN_PASSWORD || config.adminPassword;
         if (
           credentials &&
-          credentials.username === config.adminEmail &&
-          credentials.password === config.adminPassword
+          adminEmail &&
+          adminPassword &&
+          credentials.username === adminEmail &&
+          credentials.password === adminPassword
         ) {
           return genericAdminUser;
         } else {
