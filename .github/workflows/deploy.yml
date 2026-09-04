@@ -161,13 +161,20 @@ jobs:
               chmod -R a+rX apps/ocpp-server/hasura-metadata || true
             fi
             COMPOSE="docker compose -f docker-compose.yml -f docker-compose.voltu.yml -f docker-compose.harden.yml --profile ui"
-            # Zero-downtime steady state: `up -d` recreates ONLY the services whose image/config changed
-            # (each deploy that's the sha-tagged citrine-ui + the two sidecars). Postgres, RabbitMQ, minio,
-            # Hasura and the CitrineOS server keep running untouched, so the charger connections and the DB
-            # never drop. (A one-off change to a service's PUBLISHED PORTS forces its recreate and can hit a
-            # rootless-Podman port-release lag — handle that service once by hand; see the README.)
             $COMPOSE pull
-            $COMPOSE up -d --remove-orphans
+            # Zero-downtime steady state: `up -d` recreates ONLY the services whose image/config changed
+            # (usually the sha-tagged citrine-ui + the two sidecars). Postgres, RabbitMQ, minio, Hasura and
+            # the CitrineOS server keep running, so charger connections and the DB never drop.
+            # The exception is a deploy that changes a service's PUBLISHED PORTS (e.g. first applying the
+            # harden overlay): rootless Podman's forwarder lags releasing the old binding, so `up -d` fails
+            # with "address already in use". Self-heal that one-off by clearing stale forwarders and recreating.
+            if ! $COMPOSE up -d --remove-orphans; then
+              echo "up -d failed (rootless port rebind) — clearing stale forwarders and recreating"
+              $COMPOSE down --remove-orphans || true
+              pkill -f rootlessport 2>/dev/null || true
+              pkill -f pasta 2>/dev/null || true
+              $COMPOSE up -d
+            fi
             docker image prune -f
         env:
           GHCR_USER: ${{ github.actor }}
