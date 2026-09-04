@@ -161,6 +161,11 @@ jobs:
               chmod -R a+rX apps/ocpp-server/hasura-metadata || true
             fi
             COMPOSE="docker compose -f docker-compose.yml -f docker-compose.voltu.yml -f docker-compose.harden.yml --profile ui"
+            # Zero-downtime steady state: `up -d` recreates ONLY the services whose image/config changed
+            # (each deploy that's the sha-tagged citrine-ui + the two sidecars). Postgres, RabbitMQ, minio,
+            # Hasura and the CitrineOS server keep running untouched, so the charger connections and the DB
+            # never drop. (A one-off change to a service's PUBLISHED PORTS forces its recreate and can hit a
+            # rootless-Podman port-release lag — handle that service once by hand; see the README.)
             $COMPOSE pull
             $COMPOSE up -d --remove-orphans
             docker image prune -f
