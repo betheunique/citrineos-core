@@ -29,6 +29,14 @@ services:
   graphql-engine:
     volumes:
       - ./apps/ocpp-server/hasura-metadata:/hasura-metadata:z
+    environment:
+      # No admin secret = anyone who reaches Hasura has full read/write over the DB. Required (long random;
+      # must match apps/operator-ui/.env.local HASURA_ADMIN_SECRET). Network isolation is the firewall's job
+      # (Oracle security list + firewalld allow only 22/443) — see the infra README hardening section.
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?set a long random HASURA_GRAPHQL_ADMIN_SECRET in .env}
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "false"
+      HASURA_GRAPHQL_DEV_MODE: "false"
+      HASURA_GRAPHQL_CORS_DOMAIN: ${PUBLIC_ORIGIN:-*}
 
   # Recent minio images ship without curl, so the base healthcheck can sit "unhealthy" forever and block the
   # startup chain. The core uses LOCAL file access (not minio), so don't gate startup on minio being healthy —
