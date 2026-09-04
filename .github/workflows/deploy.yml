@@ -160,7 +160,7 @@ jobs:
               # make it world-readable so the container user can access it under the user namespace.
               chmod -R a+rX apps/ocpp-server/hasura-metadata || true
             fi
-            COMPOSE="docker compose -f docker-compose.yml -f docker-compose.voltu.yml --profile ui"
+            COMPOSE="docker compose -f docker-compose.yml -f docker-compose.voltu.yml -f docker-compose.harden.yml --profile ui"
             $COMPOSE pull
             $COMPOSE up -d --remove-orphans
             docker image prune -f

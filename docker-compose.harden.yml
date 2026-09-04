@@ -1,0 +1,57 @@
+# SPDX-FileCopyrightText: 2025 Voltu
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+# Hardening overlay. The base + voltu overlays publish many ports on 0.0.0.0 (all interfaces). On a box with a
+# public IP that exposes Postgres, RabbitMQ, minio, Hasura and a Node debugger to the internet. This overlay
+# rebinds EVERY published port to 127.0.0.1 (loopback only), so nothing is reachable from outside the host. A
+# single host reverse proxy (see infra/reverse-proxy) terminates TLS and is the ONLY public listener; it reaches
+# these services over loopback. It also sets the Hasura admin secret and turns the console off.
+#
+# Apply it as a THIRD -f, after the base and the voltu overlay:
+#   docker compose -f docker-compose.yml -f docker-compose.voltu.yml -f docker-compose.harden.yml --profile ui up -d
+#
+# Requires in .env:  HASURA_GRAPHQL_ADMIN_SECRET  (a long random string; must match the operator UI's
+#                    HASURA_ADMIN_SECRET in apps/operator-ui/.env.local). PUBLIC_ORIGIN is the https origin the
+#                    operator browser loads from (for Hasura CORS), e.g. https://operator.voltu.energy.
+services:
+  citrine:
+    ports:
+      - "127.0.0.1:8080:8080"
+      - "127.0.0.1:8081:8081"
+      - "127.0.0.1:8082:8082"
+      - "127.0.0.1:8443:8443"
+      - "127.0.0.1:8444:8444"
+      # 9229 (Node inspector/debugger) is intentionally NOT published — never expose it.
+
+  citrine-ui:
+    ports:
+      - "127.0.0.1:3000:3000"
+
+  graphql-engine:
+    ports:
+      - "127.0.0.1:8090:8080"
+    environment:
+      # No admin secret = anyone who reaches Hasura has full read/write over the DB. Required now.
+      HASURA_GRAPHQL_ADMIN_SECRET: ${HASURA_GRAPHQL_ADMIN_SECRET:?set a long random HASURA_GRAPHQL_ADMIN_SECRET in .env}
+      HASURA_GRAPHQL_ENABLE_CONSOLE: "false"
+      HASURA_GRAPHQL_DEV_MODE: "false"
+      HASURA_GRAPHQL_CORS_DOMAIN: ${PUBLIC_ORIGIN:-*}
+
+  ocpp-db:
+    ports:
+      - "127.0.0.1:5432:5432"
+
+  amqp-broker:
+    ports:
+      - "127.0.0.1:15672:15672"
+      - "127.0.0.1:5672:5672"
+
+  minio:
+    ports:
+      - "127.0.0.1:9000:9000"
+      - "127.0.0.1:9001:9001"
+
+  voltu-ocpp-proxy:
+    ports:
+      - "127.0.0.1:9310:9310"
