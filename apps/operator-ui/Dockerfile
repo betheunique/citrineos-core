@@ -13,6 +13,18 @@ WORKDIR /app
 COPY . .
 
 RUN pnpm install --frozen-lockfile
+
+# The operator UI's public URLs are compiled into the browser bundle at BUILD time (NEXT_PUBLIC_*), so they
+# must be set before `build`. CI passes them (from the DASHBOARD_DOMAIN repo var) so the browser talks to the
+# public origin, not localhost. Left empty for local/PR builds -> config.ts falls back to localhost.
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_WS_URL
+ARG NEXT_PUBLIC_CITRINE_CORE_URL
+ARG NEXT_PUBLIC_FILE_SERVER_URL
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL} \
+    NEXT_PUBLIC_WS_URL=${NEXT_PUBLIC_WS_URL} \
+    NEXT_PUBLIC_CITRINE_CORE_URL=${NEXT_PUBLIC_CITRINE_CORE_URL} \
+    NEXT_PUBLIC_FILE_SERVER_URL=${NEXT_PUBLIC_FILE_SERVER_URL}
 RUN pnpm --filter "@citrineos/operator-ui..." build
 
 FROM node:24.16.0-alpine AS runner

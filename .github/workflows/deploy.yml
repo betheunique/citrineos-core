@@ -52,6 +52,9 @@ concurrency:
 
 env:
   REGISTRY: ${{ vars.REGISTRY || format('ghcr.io/{0}', github.repository_owner) }}
+  # Public dashboard hostname (no scheme). Drives the operator-UI build-time NEXT_PUBLIC_* URLs so the browser
+  # talks to the public origin, not localhost. Set the DASHBOARD_DOMAIN repo variable to adopt another domain.
+  DASHBOARD_DOMAIN: ${{ vars.DASHBOARD_DOMAIN || 'app.voltu.energy' }}
 
 jobs:
   build:
@@ -103,6 +106,12 @@ jobs:
           file: ${{ matrix.image.dockerfile }}
           platforms: linux/amd64,linux/arm64
           push: true
+          # Only the operator-ui image consumes these; empty lines are ignored for the sidecars.
+          build-args: |
+            ${{ matrix.image.name == 'voltu-operator-ui' && format('NEXT_PUBLIC_API_URL=https://{0}/v1/graphql', env.DASHBOARD_DOMAIN) || '' }}
+            ${{ matrix.image.name == 'voltu-operator-ui' && format('NEXT_PUBLIC_WS_URL=wss://{0}/v1/graphql', env.DASHBOARD_DOMAIN) || '' }}
+            ${{ matrix.image.name == 'voltu-operator-ui' && format('NEXT_PUBLIC_CITRINE_CORE_URL=https://{0}/core', env.DASHBOARD_DOMAIN) || '' }}
+            ${{ matrix.image.name == 'voltu-operator-ui' && format('NEXT_PUBLIC_FILE_SERVER_URL=https://{0}/core', env.DASHBOARD_DOMAIN) || '' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.image.name }}
