@@ -3,7 +3,6 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import type { LocationDto } from '@citrineos/types';
-import config from '@lib/utils/config';
 
 export interface GoogleGeocodingResponse {
   results: GeocodingResult[];
@@ -45,26 +44,6 @@ export interface PlusCode {
   compound_code: string;
   global_code: string;
 }
-
-export const geocodeAddress = async (address: string): Promise<GeocodingResult> => {
-  const encodedAddress = encodeURIComponent(address);
-  const geocodeUrl = `https://maps.googleapis.com/maps/api/geocode/json?address=${encodedAddress}&key=${config.googleMapsApiKey}`;
-
-  try {
-    const response = await fetch(geocodeUrl);
-    const data = await response.json();
-
-    if (data.status === 'OK' && data.results.length > 0) {
-      return data.results[0];
-    } else {
-      console.error('No coordinates found for this address.', data);
-      return Promise.reject('No coordinates found for this address.');
-    }
-  } catch (error: any) {
-    console.error('Geocoding error:', error);
-    return Promise.reject('No coordinates found for this address. Error: ' + error.message);
-  }
-};
 
 export const getAddressComponent = (components: AddressComponent[], type: string): string => {
   const found = components.find((comp) => comp.types.includes(type));

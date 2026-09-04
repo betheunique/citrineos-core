@@ -6,10 +6,10 @@ import { type AuthProviderType, AuthProviderTypeEnum } from '../providers/auth-p
 
 const getConfig: () => {
   appName: string;
-  googleMapsApiKey: string;
-  googleMapsAddressApiKey: string;
-  googleMapsLocationPickerMapId?: string;
-  googleMapsOverviewMapId?: string;
+  // Voltu self-hosted map stack (replaces Google): the tile Worker base + server-only secrets.
+  tilesBaseUrl: string;
+  tileTokenSecret?: string; // server-only; HMAC secret shared with the tile Worker (mints short-lived tokens)
+  orsApiKey?: string; // server-only; OpenRouteService geocode key (Photon fallback needs no key)
   defaultMapCenterLatitude: number;
   defaultMapCenterLongitude: number;
   hasuraAdminSecret?: string; // Not recommended for use in production; use your authProvider instead.
@@ -47,13 +47,9 @@ const getConfig: () => {
   return {
     appName: process.env.NEXT_PUBLIC_APP_NAME || 'Voltu',
     bannerMessage: process.env.NEXT_PUBLIC_BANNER_MESSAGE,
-    googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || 'YOUR_GOOGLE_MAPS_API_KEY',
-    googleMapsAddressApiKey:
-      process.env.GOOGLE_MAPS_ADDRESS_API_KEY || 'YOUR_GOOGLE_MAPS_ADDRESS_API_KEY',
-    googleMapsLocationPickerMapId:
-      process.env.NEXT_PUBLIC_GOOGLE_MAPS_LOCATION_PICKER_MAP_ID || 'location-picker-map-id',
-    googleMapsOverviewMapId:
-      process.env.NEXT_PUBLIC_GOOGLE_MAPS_OVERVIEW_MAP_ID || 'overview-map-id',
+    tilesBaseUrl: process.env.NEXT_PUBLIC_TILES_BASE_URL || 'https://tiles.voltu.energy',
+    tileTokenSecret: process.env.TILE_TOKEN_SECRET,
+    orsApiKey: process.env.ORS_API_KEY,
     defaultMapCenterLatitude: process.env.NEXT_PUBLIC_DEFAULT_MAP_CENTER_LATITUDE
       ? parseFloat(process.env.NEXT_PUBLIC_DEFAULT_MAP_CENTER_LATITUDE)
       : 19.076, // Mumbai, Voltu's first city

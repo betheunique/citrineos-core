@@ -3,8 +3,8 @@
 // SPDX-License-Identifier: Apache-2.0
 'use server';
 
-import config from '@lib/utils/config';
 import { authedAction, type ActionResult } from '@lib/utils/action-guard';
+import type { GeoDetail } from './autocompleteAddress';
 
 export interface PlaceDetailsResponse {
   id: string;
@@ -30,57 +30,44 @@ export interface PlaceDetailsResponse {
   types?: string[];
 }
 
-// Google Place IDs are always alphanumeric with limited punctuation.
-// Reject anything that doesn't match before it touches the URL.
-const PLACE_ID_REGEX = /^[A-Za-z0-9_-]{10,250}$/;
+// place_id is a base64url-encoded GeoDetail minted by autocompleteAddress (ORS/Photon return the full place, so
+// there is no upstream "details" endpoint to call). We decode it and re-shape it into the Google-style response
+// the client parser (address-autocomplete.tsx) already reads by component `types`, so nothing downstream changes.
+const ENCODED_REGEX = /^[A-Za-z0-9_-]{1,8000}$/;
 
-// Session tokens are UUIDs
-const SESSION_TOKEN_REGEX = /^[0-9a-f-]{36}$/i;
+function component(longText: string, types: string[], shortText?: string) {
+  return { longText, shortText: shortText ?? longText, types };
+}
 
 export async function getPlaceDetails(
   placeId: string,
-  sessionToken?: string,
+  _sessionToken?: string,
 ): Promise<ActionResult<PlaceDetailsResponse>> {
   return authedAction(async (_session) => {
-    if (!placeId) {
-      throw new Error('Place ID is required');
-    }
-
-    if (!PLACE_ID_REGEX.test(placeId)) {
+    if (!placeId || !ENCODED_REGEX.test(placeId)) {
       throw new Error('Invalid place ID');
     }
 
-    if (sessionToken !== undefined && !SESSION_TOKEN_REGEX.test(sessionToken)) {
-      throw new Error('Invalid session token');
-    }
-
-    const url = new URL(`https://places.googleapis.com/v1/places/${placeId}`);
-    if (sessionToken) {
-      url.searchParams.set('sessionToken', sessionToken);
-    }
-
-    let response: Response;
+    let d: GeoDetail;
     try {
-      response = await fetch(url.toString(), {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Goog-Api-Key': config.googleMapsAddressApiKey!,
-          'X-Goog-FieldMask':
-            'id,displayName,formattedAddress,addressComponents,location,plusCode,types',
-        },
-      });
-    } catch (err) {
-      console.error('Network error fetching place details:', err);
-      throw new Error('Failed to fetch place details');
+      d = JSON.parse(Buffer.from(placeId, 'base64url').toString());
+    } catch {
+      throw new Error('Invalid place ID');
     }
 
-    if (!response.ok) {
-      console.error('Google Places API error:', response.status, await response.text());
-      throw new Error('Failed to fetch place details');
-    }
-
-    const data = await response.json();
-    return data as PlaceDetailsResponse;
+    return {
+      id: placeId,
+      displayName: { text: d.description, languageCode: 'en' },
+      formattedAddress: d.description,
+      // Synthesize Google component `types` so the client's getComponent(...) lookups resolve unchanged.
+      addressComponents: [
+        component(d.street, ['route']),
+        component(d.city, ['locality']),
+        component(d.state, ['administrative_area_level_1']),
+        component(d.postalCode, ['postal_code']),
+        component(d.countryName, ['country'], d.countryCode),
+      ].filter((c) => c.longText),
+      location: { latitude: d.lat, longitude: d.lng },
+    } satisfies PlaceDetailsResponse;
   });
 }

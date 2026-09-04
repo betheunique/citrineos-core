@@ -59,7 +59,7 @@ import { toast } from 'sonner';
 import { useNotification } from '@refinedev/core';
 import { S3_BUCKET_FOLDER_IMAGES_LOCATIONS } from '@lib/utils/consts';
 import { uploadFileViaPresignedUrl } from '@lib/server/actions/file/uploadFileViaPresignedUrl';
-import { getCountryList, type CountryCode } from '@lib/utils/country.config';
+import { getCountryList, PREDEFINED_AREAS, type CountryCode } from '@lib/utils/country.config';
 import { OpeningHoursForm } from '@lib/client/components/opening-hours';
 import { isValid, parseISO } from 'date-fns';
 import { useTenantId } from '@lib/client/hooks/useTenantId';
@@ -69,7 +69,22 @@ type LocationsUpsertProps = {
   allowImageUpload?: boolean;
 };
 
-const buildLocationCreateSchema = (addressRequiredMessage: string) =>
+// IANA time zones for the Time Zone dropdown (India = Asia/Kolkata). Falls back to a short list on runtimes
+// without Intl.supportedValuesOf.
+const timeZoneOptions: { label: string; value: string }[] = (() => {
+  try {
+    const zones: string[] =
+      (Intl as unknown as { supportedValuesOf?: (k: string) => string[] }).supportedValuesOf?.(
+        'timeZone',
+      ) ?? [];
+    if (zones.length) return zones.map((z) => ({ label: z, value: z }));
+  } catch {
+    /* ignore */
+  }
+  return ['Asia/Kolkata', 'UTC'].map((z) => ({ label: z, value: z }));
+})();
+
+const buildLocationCreateSchema = (nameRequiredMessage: string, addressRequiredMessage: string) =>
   LocationSchema.pick({
     [LocationProps.name]: true,
     [LocationProps.address]: true,
@@ -92,6 +107,8 @@ const buildLocationCreateSchema = (addressRequiredMessage: string) =>
       )
       .nullable()
       .optional(),
+    // LocationSchema.name is z.string() which accepts "" — enforce a real name so it can't save empty.
+    [LocationProps.name]: z.string().min(1, nameRequiredMessage),
     [LocationProps.address]: z.string().min(1, addressRequiredMessage),
     [LocationProps.city]: z.string().optional().default(''),
     [LocationProps.state]: z.string().nullable().optional().default(''),
@@ -112,7 +129,7 @@ const defaultLocation = {
     type: 'Point' as const,
     coordinates: [defaultLongitude, defaultLatitude],
   },
-  [LocationProps.timeZone]: 'UTC',
+  [LocationProps.timeZone]: 'Asia/Kolkata',
   [LocationProps.parkingType]: undefined,
   [LocationProps.facilities]: [] as LocationFacilityEnumType[],
   [LocationProps.chargingPool]: undefined,
@@ -160,18 +177,41 @@ export const LocationsUpsert = ({ params, allowImageUpload = false }: LocationsU
     },
     defaultValues: defaultLocation,
     resolver: zodResolver(
-      buildLocationCreateSchema(translate('Locations.form.streetAddressRequired')),
+      buildLocationCreateSchema(
+        translate('Locations.form.nameRequired'),
+        translate('Locations.form.streetAddressRequired'),
+      ),
     ),
     warnWhenUnsavedChanges: true,
   });
 
   const coordinates = form.watch(LocationProps.coordinates);
+  // Lat/lng inputs keep the raw typed string so decimals aren't truncated (a controlled number input
+  // re-parses each keystroke, so "19.07" collapses to 19). We mirror the string, commit the parsed number
+  // to the form, and re-sync from coordinates only on EXTERNAL changes (autocomplete/map), not while typing.
+  const [latStr, setLatStr] = useState('');
+  const [lngStr, setLngStr] = useState('');
+  const editingCoordRef = useRef(false);
+  useEffect(() => {
+    if (editingCoordRef.current) return;
+    setLatStr(coordinates?.coordinates?.[1] != null ? String(coordinates.coordinates[1]) : '');
+    setLngStr(coordinates?.coordinates?.[0] != null ? String(coordinates.coordinates[0]) : '');
+  }, [coordinates]);
+  const commitCoords = (latText: string, lngText: string) => {
+    const lat = parseFloat(latText);
+    const lng = parseFloat(lngText);
+    if (!isNaN(lat) && !isNaN(lng)) {
+      form.setValue(LocationProps.coordinates, { type: 'Point', coordinates: [lng, lat] });
+    }
+  };
   const currentChargingPool = form.watch(LocationProps.chargingPool);
   const watchedAddress = form.watch(LocationProps.address) ?? '';
   const chosenCountryCode = form.watch(LocationProps.country) as CountryCode;
 
   const chosenCountry = countryList.find((c) => c.code === chosenCountryCode);
   const chosenCountryName = chosenCountry?.name ?? '';
+  // Administrative areas (states/UTs) for the chosen country — drives the State dropdown (India, US, ...).
+  const stateAreas = (chosenCountryCode && PREDEFINED_AREAS[chosenCountryCode]) || [];
 
   useEffect(() => {
     if (!originalStationIdsRef.current && currentChargingPool !== undefined) {
@@ -432,16 +472,30 @@ export const LocationsUpsert = ({ params, allowImageUpload = false }: LocationsU
                     <Input placeholder={translate('Locations.form.cityPlaceholder')} />
                   </FormField>
 
-                  {/* State / Province / Region — free text, works globally */}
-                  <FormField
-                    control={form.control}
-                    label={translate('Locations.form.stateProvinceRegion')}
-                    name={LocationProps.state}
-                  >
-                    <Input
+                  {/* State / Province — dropdown when the country has administrative areas (India, US, ...),
+                      else free text for global coverage */}
+                  {stateAreas.length > 0 ? (
+                    <ComboboxFormField
+                      control={form.control}
+                      name={LocationProps.state}
+                      label={translate('Locations.form.stateProvinceRegion')}
+                      value={(form.watch(LocationProps.state) as string) ?? ''}
+                      options={stateAreas.map((a) => ({ label: a.name, value: a.name }))}
                       placeholder={translate('Locations.form.stateProvinceRegionPlaceholder')}
+                      searchPlaceholder={translate('Locations.form.stateProvinceRegionPlaceholder')}
+                      onSelect={(name: string) => form.setValue(LocationProps.state, name)}
                     />
-                  </FormField>
+                  ) : (
+                    <FormField
+                      control={form.control}
+                      label={translate('Locations.form.stateProvinceRegion')}
+                      name={LocationProps.state}
+                    >
+                      <Input
+                        placeholder={translate('Locations.form.stateProvinceRegionPlaceholder')}
+                      />
+                    </FormField>
+                  )}
 
                   {/* Postal Code */}
                   <FormField
@@ -480,17 +534,19 @@ export const LocationsUpsert = ({ params, allowImageUpload = false }: LocationsU
                     </FieldLabel>
                     <Input
                       id="latitude"
-                      value={coordinates?.coordinates[1] || ''}
-                      onChange={(e) => {
-                        const lat = parseFloat(e.target.value);
-                        const lng = coordinates?.coordinates[0] ?? 0;
-                        if (!isNaN(lat) && !isNaN(lng))
-                          form.setValue(LocationProps.coordinates, {
-                            type: 'Point',
-                            coordinates: [lng, lat],
-                          });
+                      value={latStr}
+                      onFocus={() => {
+                        editingCoordRef.current = true;
                       }}
-                      type="number"
+                      onBlur={() => {
+                        editingCoordRef.current = false;
+                      }}
+                      onChange={(e) => {
+                        setLatStr(e.target.value);
+                        commitCoords(e.target.value, lngStr);
+                      }}
+                      type="text"
+                      inputMode="decimal"
                       placeholder={translate('Locations.form.autoFilledFromAddress')}
                     />
                   </Field>
@@ -503,30 +559,34 @@ export const LocationsUpsert = ({ params, allowImageUpload = false }: LocationsU
                     </FieldLabel>
                     <Input
                       id="longitude"
-                      value={coordinates?.coordinates[0] || ''}
-                      onChange={(e) => {
-                        const lat = coordinates?.coordinates[1] ?? 0;
-                        const lng = parseFloat(e.target.value);
-                        if (!isNaN(lat) && !isNaN(lng))
-                          form.setValue(LocationProps.coordinates, {
-                            type: 'Point',
-                            coordinates: [lng, lat],
-                          });
+                      value={lngStr}
+                      onFocus={() => {
+                        editingCoordRef.current = true;
                       }}
-                      type="number"
+                      onBlur={() => {
+                        editingCoordRef.current = false;
+                      }}
+                      onChange={(e) => {
+                        setLngStr(e.target.value);
+                        commitCoords(latStr, e.target.value);
+                      }}
+                      type="text"
+                      inputMode="decimal"
                       placeholder={translate('Locations.form.autoFilledFromAddress')}
                     />
                   </Field>
 
-                  {/* Time Zone */}
-                  <FormField
+                  {/* Time Zone — dropdown of IANA zones (India = Asia/Kolkata) */}
+                  <ComboboxFormField
                     control={form.control}
-                    label={translate('Locations.form.timeZone')}
                     name={LocationProps.timeZone}
-                    required
-                  >
-                    <Input />
-                  </FormField>
+                    label={translate('Locations.form.timeZone')}
+                    value={(form.watch(LocationProps.timeZone) as string) ?? ''}
+                    options={timeZoneOptions}
+                    placeholder={translate('Locations.form.timeZone')}
+                    searchPlaceholder={translate('Locations.form.timeZone')}
+                    onSelect={(tz: string) => form.setValue(LocationProps.timeZone, tz)}
+                  />
 
                   {/* Parking Type */}
                   <ComboboxFormField

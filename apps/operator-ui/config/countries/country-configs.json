@@ -8,5 +8,12 @@
     "administrativeAreaLabel": "Province",
     "postalCodeLabel": "Postal Code",
     "postalCodePattern": "^[A-Z]\\d[A-Z]\\s?\\d[A-Z]\\d$"
+  },
+  "IN": {
+    "usesAdministrativeAreas": true,
+    "administrativeAreaLabel": "State",
+    "postalCodeLabel": "PIN Code",
+    "postalCodeRequired": true,
+    "postalCodePattern": "^[1-9][0-9]{5}$"
   }
 }
