@@ -28,6 +28,7 @@
       "name": "Name",
       "streetAddress": "Street Address",
       "streetAddressRequired": "Street address is required",
+      "nameRequired": "Name is required",
       "addressAutocompletePlaceholder": "Start typing to search, or enter manually below",
       "city": "City",
       "cityPlaceholder": "e.g. Mumbai",

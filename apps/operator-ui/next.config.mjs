@@ -14,6 +14,10 @@ const withNextIntl = createNextIntlPlugin(resolve(__dirname, 'src/lib/i18n/reque
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   output: 'standalone',
+  // maplibre-gl + @protomaps/basemaps are ESM-only; Next must transpile them or it emits an ESM chunk that
+  // 404s in the browser ("Failed to load module script: non-JavaScript MIME type text/html") and the map
+  // never mounts.
+  transpilePackages: ['maplibre-gl', '@protomaps/basemaps'],
   // Trace from the monorepo root so the standalone output bundles workspace
   // dependencies (@citrineos/types) correctly.
   outputFileTracingRoot: resolve(__dirname, '../..'),

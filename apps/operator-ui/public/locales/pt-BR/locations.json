@@ -28,6 +28,7 @@
       "name": "Nome",
       "streetAddress": "Endereço",
       "streetAddressRequired": "O endereço é obrigatório",
+      "nameRequired": "O nome é obrigatório",
       "addressAutocompletePlaceholder": "Comece a digitar para buscar ou insira manualmente abaixo",
       "city": "Cidade",
       "cityPlaceholder": "ex.: Berlim",
