@@ -10,6 +10,7 @@ import { ActionType, ResourceType } from '@lib/utils/access.types';
 import { NOT_APPLICABLE } from '@lib/utils/consts';
 import { getFullAddress } from '@lib/utils/geocoding';
 import { CanAccess, useDelete, useTranslate } from '@refinedev/core';
+import { CHARGING_STATIONS_DELETE_MUTATION } from '@lib/queries/charging.stations';
 import { ChevronLeft, Edit, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader } from '@lib/client/components/ui/card';
@@ -28,13 +29,47 @@ export interface LocationDetailCardProps {
 export const LocationDetailCard = ({ location, imageUrl }: LocationDetailCardProps) => {
   const { back, push } = useRouter();
   const translate = useTranslate();
-  const { mutate: deleteLocation } = useDelete();
+  const { mutateAsync: deleteRecord } = useDelete();
 
-  const handleDelete = () => {
-    deleteLocation(
-      { resource: ResourceType.LOCATIONS, id: location.id! },
-      { onSuccess: () => push(`/${MenuSection.LOCATIONS}`) },
-    );
+  // A Location can't be deleted while ChargingStations reference it (FK constraint), so cascade: delete the
+  // child stations first (reusing their own delete mutation, which handles a station's own children), then the
+  // location. Confirm first, since this removes the stations too.
+  const handleDelete = async () => {
+    const stations = location.chargingPool ?? [];
+    if (
+      stations.length > 0 &&
+      !window.confirm(
+        translate('Locations.detail.confirmDeleteWithStations', { count: stations.length }),
+      )
+    ) {
+      return;
+    }
+    // Turn the raw DB "Foreign key violation" into a clear reason: a location/station with charging activity
+    // (sessions/transactions) is retained for records and can't be deleted.
+    const errorNotification = (error: unknown) => ({
+      message: /constraint|foreign key/i.test(String((error as { message?: string })?.message ?? ''))
+        ? translate('Locations.detail.deleteBlockedByActivity')
+        : translate('Locations.detail.deleteFailed'),
+      type: 'error' as const,
+    });
+    try {
+      for (const station of stations) {
+        await deleteRecord({
+          resource: ResourceType.CHARGING_STATIONS,
+          id: station.id!,
+          meta: { gqlMutation: CHARGING_STATIONS_DELETE_MUTATION },
+          errorNotification,
+        });
+      }
+      await deleteRecord({
+        resource: ResourceType.LOCATIONS,
+        id: location.id!,
+        errorNotification,
+      });
+      push(`/${MenuSection.LOCATIONS}`);
+    } catch {
+      /* errorNotification already showed the reason; keep the user on the page */
+    }
   };
 
   return (

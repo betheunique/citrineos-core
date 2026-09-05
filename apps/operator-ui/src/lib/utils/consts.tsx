@@ -8,9 +8,17 @@ import { ResourceType } from '@lib/utils/access.types';
 export const I18N_COOKIE_NAME = 'NEXT_LOCALE';
 export const DEFAULT_LOCALE = 'en';
 
-export const LOCALES = [
+// English is live. The Indian languages are listed as "coming soon" (not yet translated) — the switcher shows
+// them disabled so a user can see they're on the roadmap without falling back to English mid-use.
+export const LOCALES: { value: string; label: string; comingSoon?: boolean }[] = [
   { value: 'en', label: 'English' },
-  { value: 'pt-BR', label: 'Português (Brasil)' },
+  { value: 'hi', label: 'हिन्दी (Hindi)', comingSoon: true },
+  { value: 'bn', label: 'বাংলা (Bengali)', comingSoon: true },
+  { value: 'te', label: 'తెలుగు (Telugu)', comingSoon: true },
+  { value: 'mr', label: 'मराठी (Marathi)', comingSoon: true },
+  { value: 'ta', label: 'தமிழ் (Tamil)', comingSoon: true },
+  { value: 'kn', label: 'ಕನ್ನಡ (Kannada)', comingSoon: true },
+  { value: 'ml', label: 'മലയാളം (Malayalam)', comingSoon: true },
 ];
 
 export const NEW_IDENTIFIER = 'new';

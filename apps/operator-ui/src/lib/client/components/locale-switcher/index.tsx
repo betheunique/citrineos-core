@@ -36,6 +36,7 @@ export const LocaleSwitcher = ({ expanded }: { expanded: boolean }) => {
 
   const onSelectLocale = (nextLocale: string) => {
     if (nextLocale === locale) return;
+    if (LOCALES.find((l) => l.value === nextLocale)?.comingSoon) return; // not translated yet
     startTransition(async () => {
       await setUserLocale(nextLocale);
       router.refresh();
@@ -62,8 +63,16 @@ export const LocaleSwitcher = ({ expanded }: { expanded: boolean }) => {
           <DropdownMenuContent align="start" side="right">
             <DropdownMenuRadioGroup value={locale} onValueChange={onSelectLocale}>
               {LOCALES.map((l) => (
-                <DropdownMenuRadioItem key={l.value} value={l.value}>
-                  {l.label}
+                <DropdownMenuRadioItem
+                  key={l.value}
+                  value={l.value}
+                  disabled={l.comingSoon}
+                  className={cn(l.comingSoon && 'flex justify-between gap-4')}
+                >
+                  <span>{l.label}</span>
+                  {l.comingSoon && (
+                    <span className="text-xs text-muted-foreground">{t('comingSoon')}</span>
+                  )}
                 </DropdownMenuRadioItem>
               ))}
             </DropdownMenuRadioGroup>

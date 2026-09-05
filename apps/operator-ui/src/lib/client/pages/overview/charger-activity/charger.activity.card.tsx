@@ -254,7 +254,11 @@ export const ChargerActivityCard: React.FC = () => {
                 >
                   <PercentageCircle
                     percentage={
-                      total > 0 ? Math.round((finalCounts[status].count / total) * 100) : 0
+                      // Never round a non-zero count down to 0% — e.g. 1 offline out of 250 is 0.4%, which
+                      // would otherwise read "0% offline" while a charger really is down. Floor at 1%.
+                      finalCounts[status].count > 0
+                        ? Math.max(1, Math.round((finalCounts[status].count / total) * 100))
+                        : 0
                     }
                     color={getStatusColor[status]}
                   />

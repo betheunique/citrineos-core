@@ -22,7 +22,10 @@
     },
     "detail": {
       "totalChargers": "Total Chargers",
-      "imageAlt": "{name} image"
+      "imageAlt": "{name} image",
+      "confirmDeleteWithStations": "This location has {count} charging station(s). Deleting it will also delete them. Continue?",
+      "deleteBlockedByActivity": "This location has charging activity (sessions or transactions) and can't be deleted. Locations with a history are kept for records.",
+      "deleteFailed": "Could not delete this location. Please try again."
     },
     "form": {
       "name": "Name",

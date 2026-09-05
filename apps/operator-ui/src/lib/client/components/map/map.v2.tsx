@@ -129,6 +129,9 @@ const MapInner = ({ locations }: { locations: LocationDto[] }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const tokenRef = useRef<string>('');
+  // Always hold the freshest locations so the async 'load' handler never draws a stale/empty set.
+  const locationsRef = useRef(locations);
+  locationsRef.current = locations;
   const { resolvedTheme } = useTheme();
   const mode = resolvedTheme === 'dark' ? 'dark' : 'light';
 
@@ -150,7 +153,9 @@ const MapInner = ({ locations }: { locations: LocationDto[] }) => {
         transformRequest: tileTransformRequest(() => tokenRef.current),
       });
       map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'top-right');
-      map.on('load', () => addLayers(map, toFeatureCollection(locations)));
+      map.on('load', () => {
+        if (!map.getSource(SRC)) addLayers(map, toFeatureCollection(locationsRef.current));
+      });
       mapRef.current = map;
 
       refresh = setInterval(async () => {
@@ -168,10 +173,17 @@ const MapInner = ({ locations }: { locations: LocationDto[] }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Refresh the clustered data when locations change.
+  // Refresh the clustered data when locations change — apply immediately if the source exists, otherwise the
+  // 'load' handler (above) will draw the freshest set via locationsRef.
   useEffect(() => {
-    const source = mapRef.current?.getSource(SRC) as maplibregl.GeoJSONSource | undefined;
+    const map = mapRef.current;
+    if (!map) return;
+    const source = map.getSource(SRC) as maplibregl.GeoJSONSource | undefined;
     if (source) source.setData(toFeatureCollection(locations));
+    else map.once('load', () => {
+      const s = map.getSource(SRC) as maplibregl.GeoJSONSource | undefined;
+      if (s) s.setData(toFeatureCollection(locationsRef.current));
+    });
   }, [locations]);
 
   return <div ref={containerRef} className="size-full" />;
