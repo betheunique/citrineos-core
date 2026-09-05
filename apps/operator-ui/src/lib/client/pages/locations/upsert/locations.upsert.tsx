@@ -4,6 +4,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import {
   ChargingStationProps,
   ChargingStationSchema,
@@ -15,11 +16,16 @@ import {
   LocationParkingEnum,
 } from '@citrineos/types';
 import { MenuSection } from '@lib/client/components/main-menu/main.menu';
-import {
-  defaultLatitude,
-  defaultLongitude,
-  MapLocationPicker,
-} from '@lib/client/components/map/map.location.picker';
+import config from '@lib/utils/config';
+
+// MapLibre is client-only + ESM; load it via a client-only dynamic import so Next never renders it on the
+// server (which otherwise emits an ESM module chunk that 404s → "Failed to load module script").
+const MapLocationPicker = dynamic(
+  () => import('@lib/client/components/map/map.location.picker').then((m) => m.MapLocationPicker),
+  { ssr: false },
+);
+const defaultLatitude = config.defaultMapCenterLatitude;
+const defaultLongitude = config.defaultMapCenterLongitude;
 import { Button } from '@lib/client/components/ui/button';
 import { Input } from '@lib/client/components/ui/input';
 import { LocationClass } from '@lib/cls/location.dto';

@@ -11,7 +11,12 @@ import { LOCATIONS_LIST_QUERY } from '@lib/queries/locations';
 import { ResourceType } from '@lib/utils/access.types';
 import { useList, useTranslate } from '@refinedev/core';
 import { plainToInstance } from 'class-transformer';
-import { LocationMapV2 } from '@lib/client/components/map/map.v2';
+import dynamic from 'next/dynamic';
+// Client-only (MapLibre is ESM + browser-only): avoids the SSR ESM chunk that 404s as a module script.
+const LocationMapV2 = dynamic(
+  () => import('@lib/client/components/map/map.v2').then((m) => m.LocationMapV2),
+  { ssr: false },
+);
 import { Skeleton } from '@lib/client/components/ui/skeleton';
 
 export interface LocationsMapProps {
