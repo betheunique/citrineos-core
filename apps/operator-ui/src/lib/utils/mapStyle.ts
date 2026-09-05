@@ -11,7 +11,21 @@ import config from '@lib/utils/config';
 
 const BASE = config.tilesBaseUrl;
 
+// Our R2 glyph bucket only hosts the brand fonts (HankenGrotesk / SpaceGrotesk), NOT the Noto stacks the
+// Protomaps style asks for by default — so we rewrite every label's text-font to the brand body font, else
+// glyphs 404 and no labels render.
+const BRAND_FONT = ['HankenGrotesk'];
+
 export function buildVoltuStyle(mode: 'light' | 'dark'): StyleSpecification {
+  const styleLayers = layers('protomaps', namedFlavor(mode), { lang: 'en' }) as Array<{
+    type: string;
+    layout?: Record<string, unknown>;
+  }>;
+  for (const layer of styleLayers) {
+    if (layer.type === 'symbol' && layer.layout && 'text-field' in layer.layout) {
+      layer.layout['text-font'] = BRAND_FONT;
+    }
+  }
   return {
     version: 8,
     glyphs: `${BASE}/glyphs/{fontstack}/{range}.pbf`,
@@ -25,7 +39,7 @@ export function buildVoltuStyle(mode: 'light' | 'dark'): StyleSpecification {
         attribution: '© OpenStreetMap · Protomaps',
       },
     },
-    layers: layers('protomaps', namedFlavor(mode), { lang: 'en' }),
+    layers: styleLayers,
   } as unknown as StyleSpecification;
 }
 

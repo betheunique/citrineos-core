@@ -72,7 +72,7 @@ function addLayers(map: maplibregl.Map, data: GeoJSON.FeatureCollection<GeoJSON.
     filter: ['has', 'point_count'],
     layout: {
       'text-field': '{point_count_abbreviated}',
-      'text-font': ['Noto Sans Regular'],
+      'text-font': ['HankenGrotesk'], // only the brand fonts exist on our glyph bucket
       'text-size': 12,
     },
     paint: { 'text-color': '#ffffff' },

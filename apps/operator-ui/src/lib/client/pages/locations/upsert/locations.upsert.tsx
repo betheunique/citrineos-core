@@ -69,19 +69,28 @@ type LocationsUpsertProps = {
   allowImageUpload?: boolean;
 };
 
-// IANA time zones for the Time Zone dropdown (India = Asia/Kolkata). Falls back to a short list on runtimes
-// without Intl.supportedValuesOf.
+// IANA time zones for the Time Zone dropdown. The runtime's Intl.supportedValuesOf list is NOT canonical —
+// different ICU builds return the India zone as Asia/Calcutta or Asia/Dilli instead of the standard
+// Asia/Kolkata — so we normalize those aliases to Asia/Kolkata and force the canonical India + UTC to the top
+// (the default is Asia/Kolkata, which must exist in the options or the combobox can't match it).
+const TZ_ALIAS_TO_CANONICAL: Record<string, string> = {
+  'Asia/Calcutta': 'Asia/Kolkata',
+  'Asia/Dilli': 'Asia/Kolkata',
+  'Asia/Delhi': 'Asia/Kolkata',
+};
 const timeZoneOptions: { label: string; value: string }[] = (() => {
+  let zones: string[] = ['Asia/Kolkata', 'UTC'];
   try {
-    const zones: string[] =
+    const runtime =
       (Intl as unknown as { supportedValuesOf?: (k: string) => string[] }).supportedValuesOf?.(
         'timeZone',
       ) ?? [];
-    if (zones.length) return zones.map((z) => ({ label: z, value: z }));
+    zones = [...zones, ...runtime.map((z) => TZ_ALIAS_TO_CANONICAL[z] ?? z)];
   } catch {
-    /* ignore */
+    /* runtime lacks supportedValuesOf — the canonical fallback above still works */
   }
-  return ['Asia/Kolkata', 'UTC'].map((z) => ({ label: z, value: z }));
+  const seen = new Set<string>();
+  return zones.filter((z) => !seen.has(z) && seen.add(z)).map((z) => ({ label: z, value: z }));
 })();
 
 const buildLocationCreateSchema = (nameRequiredMessage: string, addressRequiredMessage: string) =>
@@ -206,6 +215,7 @@ export const LocationsUpsert = ({ params, allowImageUpload = false }: LocationsU
   };
   const currentChargingPool = form.watch(LocationProps.chargingPool);
   const watchedAddress = form.watch(LocationProps.address) ?? '';
+  const watchedCity = form.watch(LocationProps.city) ?? '';
   const chosenCountryCode = form.watch(LocationProps.country) as CountryCode;
 
   const chosenCountry = countryList.find((c) => c.code === chosenCountryCode);
@@ -463,14 +473,28 @@ export const LocationsUpsert = ({ params, allowImageUpload = false }: LocationsU
                     </Field>
                   </div>
 
-                  {/* City */}
-                  <FormField
-                    control={form.control}
-                    label={translate('Locations.form.city')}
-                    name={LocationProps.city}
-                  >
-                    <Input placeholder={translate('Locations.form.cityPlaceholder')} />
-                  </FormField>
+                  {/* City — autocomplete (ORS/Photon); selecting a city fills its coordinates too */}
+                  <Field>
+                    <FieldLabel className={formLabelWrapperStyle}>
+                      <span className={formLabelStyle}>{translate('Locations.form.city')}</span>
+                    </FieldLabel>
+                    <AddressAutocomplete
+                      value={watchedCity}
+                      countryCode={chosenCountryCode}
+                      onChangeAction={(val) => form.setValue(LocationProps.city, val)}
+                      onSelectPlaceAction={(_placeId, details) => {
+                        form.setValue(LocationProps.city, details.city || details.address);
+                        if (details.state) form.setValue(LocationProps.state, details.state);
+                        if (details.coordinates) {
+                          form.setValue(LocationProps.coordinates, {
+                            type: 'Point',
+                            coordinates: [details.coordinates.lng, details.coordinates.lat],
+                          });
+                        }
+                      }}
+                      placeholder={translate('Locations.form.cityPlaceholder')}
+                    />
+                  </Field>
 
                   {/* State / Province — dropdown when the country has administrative areas (India, US, ...),
                       else free text for global coverage */}
@@ -646,8 +670,8 @@ export const LocationsUpsert = ({ params, allowImageUpload = false }: LocationsU
                   )}
                 </div>
 
-                {/* Map */}
-                <div>
+                {/* Map — MapLibre needs an explicit container height (unlike Google's self-sizing <Map>). */}
+                <div className="h-[420px] w-full overflow-hidden rounded-md border">
                   <MapLocationPicker point={geoPoint} onLocationSelect={handleMapClick} />
                 </div>
               </div>

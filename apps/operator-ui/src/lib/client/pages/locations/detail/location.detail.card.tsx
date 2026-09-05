@@ -9,8 +9,8 @@ import { Button } from '@lib/client/components/ui/button';
 import { ActionType, ResourceType } from '@lib/utils/access.types';
 import { NOT_APPLICABLE } from '@lib/utils/consts';
 import { getFullAddress } from '@lib/utils/geocoding';
-import { CanAccess, useTranslate } from '@refinedev/core';
-import { ChevronLeft, Edit } from 'lucide-react';
+import { CanAccess, useDelete, useTranslate } from '@refinedev/core';
+import { ChevronLeft, Edit, Trash2 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader } from '@lib/client/components/ui/card';
 import { badgeListStyle, heading2Style } from '@lib/client/styles/page';
@@ -28,6 +28,14 @@ export interface LocationDetailCardProps {
 export const LocationDetailCard = ({ location, imageUrl }: LocationDetailCardProps) => {
   const { back, push } = useRouter();
   const translate = useTranslate();
+  const { mutate: deleteLocation } = useDelete();
+
+  const handleDelete = () => {
+    deleteLocation(
+      { resource: ResourceType.LOCATIONS, id: location.id! },
+      { onSuccess: () => push(`/${MenuSection.LOCATIONS}`) },
+    );
+  };
 
   return (
     <Card>
@@ -56,6 +64,16 @@ export const LocationDetailCard = ({ location, imageUrl }: LocationDetailCardPro
             >
               <Edit className={buttonIconSize} />
               {translate('buttons.edit')}
+            </Button>
+          </CanAccess>
+          <CanAccess
+            resource={ResourceType.LOCATIONS}
+            action={ActionType.DELETE}
+            params={{ id: location.id }}
+          >
+            <Button variant="destructive" size="sm" onClick={handleDelete}>
+              <Trash2 className={buttonIconSize} />
+              {translate('buttons.delete')}
             </Button>
           </CanAccess>
         </div>
