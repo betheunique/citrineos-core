@@ -139,7 +139,7 @@ const defaultLocation = {
   [LocationProps.city]: '',
   [LocationProps.postalCode]: '',
   [LocationProps.state]: '',
-  [LocationProps.country]: '',
+  [LocationProps.country]: 'IN', // India-first: pre-select the country so the state dropdown + PIN rules apply
   [LocationProps.coordinates]: {
     type: 'Point' as const,
     coordinates: [defaultLongitude, defaultLatitude],

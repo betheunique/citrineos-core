@@ -17,6 +17,11 @@ import { Skeleton } from '@lib/client/components/ui/skeleton';
 
 const SRC = 'locations';
 const TOKEN_REFRESH_MS = 45 * 60 * 1000;
+// India bounding box (SW, NE) — the default national view.
+const INDIA_BOUNDS: [[number, number], [number, number]] = [
+  [68.0, 6.5],
+  [97.5, 37.5],
+];
 
 type LocationStatus = 'online' | 'offline' | 'partial';
 
@@ -115,14 +120,9 @@ function addLayers(map: maplibregl.Map, data: GeoJSON.FeatureCollection<GeoJSON.
     map.on('mouseleave', layer, () => (map.getCanvas().style.cursor = ''));
   }
 
-  fitToData(map, data);
-}
-
-function fitToData(map: maplibregl.Map, data: GeoJSON.FeatureCollection<GeoJSON.Point>) {
-  if (data.features.length === 0) return;
-  const bounds = new maplibregl.LngLatBounds();
-  for (const f of data.features) bounds.extend(f.geometry.coordinates as [number, number]);
-  map.fitBounds(bounds, { padding: 48, maxZoom: 12, duration: 0 });
+  // Show the whole country by default (national overview) rather than zooming into wherever the stations
+  // happen to cluster — otherwise part of India (e.g. the west) sits outside the viewport until you zoom out.
+  map.fitBounds(INDIA_BOUNDS, { padding: 24, duration: 0 });
 }
 
 const MapInner = ({ locations }: { locations: LocationDto[] }) => {
